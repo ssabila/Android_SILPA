@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Izinkan koneksi HTTP ke domain/IP tertentu -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Untuk Emulator Android Studio -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+
+        <!-- Untuk HP Fisik (Ganti IP ini dengan IP Laptop Anda) -->
+        <domain includeSubdomains="true">10.30.31.25</domain>
+
+        <!-- Tambahkan IP lain jika perlu -->
+    </domain-config>
+</network-security-config>
