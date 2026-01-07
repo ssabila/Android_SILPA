@@ -1,31 +1,18 @@
 package com.example.silpa.ui.screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,7 +23,6 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.ProfilPenggunaDto
 import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,6 +34,7 @@ fun AdminMahasiswaScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         try {
+            // Endpoint ini mengembalikan List<ProfilPenggunaDto>
             listMhs = RetrofitInstance.getApi(context).getAllMahasiswa()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -64,7 +51,7 @@ fun AdminMahasiswaScreen(navController: NavController) {
                 navigateUp = { navController.popBackStack() }
             )
         },
-        containerColor = SurfaceWhite
+        containerColor = BackgroundLight // Background abu-abu sangat muda
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -75,12 +62,14 @@ fun AdminMahasiswaScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp), // Padding kiri kanan saja
+                    .padding(horizontal = 16.dp), // Padding kiri-kanan saja
                 verticalArrangement = Arrangement.spacedBy(12.dp), // Jarak antar item
-                contentPadding = PaddingValues(vertical = 16.dp) // Padding atas bawah list
+                contentPadding = PaddingValues(vertical = 16.dp) // Padding atas-bawah list
             ) {
                 items(listMhs) { mhs ->
-                    MahasiswaRowItem(mhs) {
+                    MahasiswaMinimalRowItem(mhs) {
+                        // Navigasi ke Detail Mahasiswa saat diklik
+                        // Route "admin_mahasiswa_detail/{id}"
                         navController.navigate("admin_mahasiswa_detail/${mhs.id}")
                     }
                 }
@@ -98,16 +87,16 @@ fun AdminMahasiswaScreen(navController: NavController) {
 }
 
 @Composable
-fun MahasiswaRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
+fun MahasiswaMinimalRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat
-        border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray), // Border halus
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat design
+        border = androidx.compose.foundation.BorderStroke(1.dp, BorderBlue), // Border tipis halus
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(72.dp) // Tinggi tetap agar rapi
             .clickable { onClick() }, // Bisa diklik
-        shape = MaterialTheme.shapes.medium
+        shape = RoundedCornerShape(12.dp) // Sudut membulat
     ) {
         Row(
             modifier = Modifier
@@ -115,20 +104,25 @@ fun MahasiswaRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon Avatar dengan warna aksen
+            // Icon Avatar dengan aksen ungu muda
             Surface(
                 shape = CircleShape,
-                color = AccentPurple.copy(alpha = 0.1f), // Purple muda transparan
+                color = AccentPurple.copy(alpha = 0.1f),
                 modifier = Modifier.size(40.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Person, null, tint = AccentPurple, modifier = Modifier.size(20.dp))
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = AccentPurple,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Info Text
+            // Info Text (Nama & Email)
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
@@ -150,11 +144,11 @@ fun MahasiswaRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
                 )
             }
 
-            // Indikator kecil (opsional)
+            // Indikator Panah (Memberi hint bahwa item bisa diklik)
             Icon(
-                imageVector = androidx.compose.material.icons.Icons.Default.ArrowForward, // Atau icon lain
-                contentDescription = null,
-                tint = BorderGray,
+                imageVector = Icons.Default.ArrowForward,
+                contentDescription = "Detail",
+                tint = BorderGray, // Warna samar agar tidak mengganggu
                 modifier = Modifier.size(16.dp)
             )
         }

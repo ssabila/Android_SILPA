@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -77,30 +78,6 @@ fun SilpaTopAppBar(
     )
 }
 
-// --- 2. Badge Status (Untuk Admin & Mahasiswa) ---
-@Composable
-fun BadgeStatus(status: String) {
-    val (bgColor, textColor) = when (status) {
-        "DISETUJUI" -> SuccessGreen.copy(alpha = 0.1f) to SuccessGreen
-        "DITOLAK" -> AlertRed.copy(alpha = 0.1f) to AlertRed
-        "PERLU_REVISI" -> WarningYellow.copy(alpha = 0.1f) to WarningYellow
-        else -> AccentPurple.copy(alpha = 0.1f) to AccentPurple // DIAJUKAN
-    }
-
-    Surface(
-        color = bgColor,
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text = status,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            color = textColor,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
 @Composable
 fun BadgeStatusLarge(status: String) {
     val (textColor, bgColor) = when (status) {
@@ -120,41 +97,6 @@ fun BadgeStatusLarge(status: String) {
         )
     }
 }
-
-// --- 3. Kartu Statistik (Untuk Dashboard) ---
-@Composable
-fun StatCard(title: String, value: String, bgColor: Color, accentColor: Color, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = value,
-                fontSize = 20.sp, // Ukuran font disesuaikan agar responsif di layar kecil
-                fontWeight = FontWeight.Bold,
-                color = accentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = title,
-                fontSize = 11.sp,
-                color = TextBlack.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                lineHeight = 14.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
 
 @Composable
 fun StatSimpleBox(label: String, value: String) {
@@ -207,25 +149,25 @@ fun DropdownInput(value: String, options: List<String>, onSelectionChanged: (Str
         }
     }
 }
-
-@Composable
-fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = modifier.height(90.dp).clickable { onClick() }
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(icon, null, tint = MainBlue, modifier = Modifier.size(28.dp))
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(title, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextGray)
-        }
-    }
-}
+//
+//@Composable
+//fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+//    Card(
+//        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+//        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+//        modifier = modifier.height(90.dp).clickable { onClick() }
+//    ) {
+//        Column(
+//            modifier = Modifier.fillMaxSize(),
+//            verticalArrangement = Arrangement.Center,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Icon(icon, null, tint = MainBlue, modifier = Modifier.size(28.dp))
+//            Spacer(modifier = Modifier.height(4.dp))
+//            Text(title, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextGray)
+//        }
+//    }
+//}
 
 @Composable
 fun AdminMenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -257,14 +199,6 @@ fun AdminMenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifie
             Spacer(modifier = Modifier.height(8.dp))
             Text(title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = TextBlack, textAlign = TextAlign.Center)
         }
-    }
-}
-
-@Composable
-fun DetailRow(label: String, value: String) {
-    Column {
-        Text(label, fontSize = 12.sp, color = TextGray)
-        Text(value, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = TextBlack)
     }
 }
 
@@ -316,6 +250,98 @@ fun InfoIzinCard(izin: com.example.silpa.model.InfoJenisIzinDto, onClick: () -> 
             }
 
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = BorderGray, modifier = Modifier.size(24.dp))
+        }
+    }
+}
+
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, fontSize = 14.sp, color = TextGray)
+        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextBlack)
+    }
+}
+
+@Composable
+fun BadgeStatus(status: String) {
+    val (color, bgColor) = when(status) {
+        "DISETUJUI" -> SuccessGreen to SuccessGreen.copy(alpha = 0.1f)
+        "DITOLAK" -> AlertRed to AlertRed.copy(alpha = 0.1f)
+        "PERLU_REVISI" -> WarningYellow to WarningYellow.copy(alpha = 0.1f)
+        else -> MainBlue to MainBlue.copy(alpha = 0.1f)
+    }
+
+    Surface(color = bgColor, shape = RoundedCornerShape(50)) {
+        Text(
+            text = status,
+            modifier = Modifier.padding(horizontal=10.dp, vertical=4.dp),
+            color = color,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+fun StatItemDetail(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MainBlue)
+        Text(label, fontSize = 12.sp, color = TextGray)
+    }
+}
+
+
+@Composable
+fun StatCard(title: String, value: String, bgColor: Color, accentColor: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = accentColor)
+            Text(text = title, fontSize = 11.sp, color = TextGray, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp)
+        }
+    }
+}
+
+@Composable
+fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // Sedikit elevasi agar timbul
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .height(100.dp)
+            .clickable { onClick() }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Icon dengan background lingkaran halus
+            Surface(
+                shape = CircleShape,
+                color = MainBlue.copy(alpha = 0.1f),
+                modifier = Modifier.size(48.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, null, tint = MainBlue, modifier = Modifier.size(24.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = TextBlack)
         }
     }
 }

@@ -1,40 +1,38 @@
 package com.example.silpa.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.silpa.R
 import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.data.SessionManager
 import com.example.silpa.model.GantiKataSandiDto
 import com.example.silpa.model.PerbaruiProfilDto
+import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
-import com.example.silpa.ui.components.*
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -50,18 +48,20 @@ fun ProfileScreen(
 
     var isEditingProfile by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    // Load data profil saat layar dibuka
     LaunchedEffect(Unit) {
         try {
             val res = RetrofitInstance.getApi(context).getProfil()
-            if(res.berhasil && res.data != null) {
+            if (res.berhasil && res.data != null) {
                 nama = res.data.namaLengkap
                 email = res.data.email
                 role = res.data.peran
             }
         } catch (e: Exception) {
-            // Handle error silent
+            Toast.makeText(context, "Gagal memuat profil", Toast.LENGTH_SHORT).show()
+        } finally {
+            isLoading = false
         }
     }
 
@@ -74,8 +74,8 @@ fun ProfileScreen(
                         val api = RetrofitInstance.getApi(context)
                         val res = api.gantiKataSandi(GantiKataSandiDto(lama, baru))
                         Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
-                        if(res.berhasil) showPasswordDialog = false
-                    } catch(e: Exception) {
+                        if (res.berhasil) showPasswordDialog = false
+                    } catch (e: Exception) {
                         Toast.makeText(context, "Gagal ganti password: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -83,191 +83,218 @@ fun ProfileScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(SurfaceWhite)
-            .verticalScroll(rememberScrollState())
-    ) {
-        // Header dengan Profile Card
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MainBlue)
-                .padding(vertical = 40.dp, horizontal = 24.dp),
-            contentAlignment = Alignment.Center
-        ) {
+    Scaffold(
+        // TopBar tetap ada atau bisa dihilangkan jika ingin desain full minimalis
+        // Di sini saya pakai SilpaTopAppBar tapi tanpa warna background yang mencolok jika mau
+        // Atau biarkan konsisten biru
+        topBar = {
+            SilpaTopAppBar(
+                title = "Profil Saya",
+                canNavigateBack = false
+            )
+        },
+        containerColor = BackgroundLight // Background abu-abu muda
+    ) { padding ->
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MainBlue)
+            }
+        } else {
             Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(
-                            color = Color.White.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(20.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.AccountCircle, null, modifier = Modifier.size(48.dp), tint = Color.White)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = nama,
-                    color = Color.White,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Surface(
-                    color = Color.White.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(6.dp)
-                ) {
-                    Text(
-                        text = role.uppercase(),
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                    )
-                }
-            }
-        }
-
-        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)) {
-            if (isEditingProfile) {
-                // Mode Edit
-                Text("Edit Profil", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = TextBlack, modifier = Modifier.padding(bottom = 16.dp))
-
-                OutlinedTextField(
-                    value = nama,
-                    onValueChange = { nama = it },
-                    label = { Text("Nama Lengkap") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MainBlue,
-                        unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                        cursorColor = MainBlue
-                    ),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MainBlue,
-                        unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                        cursorColor = MainBlue
-                    ),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(
-                        onClick = { isEditingProfile = false },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.5.dp, BorderGray)
-                    ) {
-                        Text("Batal", color = TextBlack, fontWeight = FontWeight.Bold)
-                    }
-
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                try {
-                                    val res = RetrofitInstance.getApi(context).updateProfil(PerbaruiProfilDto(nama, email))
-                                    Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
-                                    isEditingProfile = false
-                                } catch (e: Exception) { Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show() }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Simpan", fontWeight = FontWeight.Bold)
-                    }
-                }
-            } else {
-                // Mode Tampil (View)
+                // --- KARTU UTAMA PROFIL ---
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, BorderBlue), // Border halus
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // Flat style
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Nama Lengkap", fontSize = 11.sp, color = TextGray, fontWeight = FontWeight.Medium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(nama, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextBlack)
-                        Divider(modifier = Modifier.padding(vertical = 12.dp), color = BorderGray.copy(alpha = 0.3f))
-                        Text("Email", fontSize = 11.sp, color = TextGray, fontWeight = FontWeight.Medium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(email, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextBlack)
+                    Column(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // Header: Avatar (Clean, White Background)
+                        Surface(
+                            modifier = Modifier.size(100.dp),
+                            shape = CircleShape,
+                            color = BackgroundLight, // Lingkaran abu-abu sangat muda
+                            border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Person, // Atau AccountCircle
+                                    contentDescription = null,
+                                    modifier = Modifier.size(60.dp),
+                                    tint = TextGray // Warna ikon abu-abu, bukan biru (request: tidak perlu biru)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Role Badge (Kecil, Minimalis)
+                        Surface(
+                            color = MainBlue.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(50),
+                        ) {
+                            Text(
+                                text = role,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                color = MainBlue,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Form / Info Section
+                        if (isEditingProfile) {
+                            OutlinedTextField(
+                                value = nama,
+                                onValueChange = { nama = it },
+                                label = { Text("Nama Lengkap") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MainBlue,
+                                    unfocusedBorderColor = BorderGray
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            OutlinedTextField(
+                                value = email,
+                                onValueChange = { email = it },
+                                label = { Text("Email") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MainBlue,
+                                    unfocusedBorderColor = BorderGray
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Tombol Aksi Edit
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Button(
+                                    onClick = { isEditingProfile = false },
+                                    colors = ButtonDefaults.buttonColors(containerColor = BackgroundLight, contentColor = TextGray),
+                                    modifier = Modifier.weight(1f).height(48.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = ButtonDefaults.buttonElevation(0.dp)
+                                ) { Text("Batal") }
+
+                                Button(
+                                    onClick = {
+                                        scope.launch {
+                                            try {
+                                                val res = RetrofitInstance.getApi(context).updateProfil(PerbaruiProfilDto(nama, email))
+                                                Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
+                                                isEditingProfile = false
+                                            } catch (e: Exception) {
+                                                Toast.makeText(context, "Gagal update: ${e.message}", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
+                                    modifier = Modifier.weight(1f).height(48.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = ButtonDefaults.buttonElevation(0.dp)
+                                ) { Text("Simpan") }
+                            }
+                        } else {
+                            // Tampilan Info (Read-Only)
+                            InfoRowMinimal("Nama Lengkap", nama)
+                            Divider(modifier = Modifier.padding(vertical = 12.dp), color = BorderGray.copy(alpha = 0.5f))
+                            InfoRowMinimal("Email", email)
+
+                            Spacer(modifier = Modifier.height(32.dp))
+
+                            // Tombol-tombol Aksi
+                            Button(
+                                onClick = { isEditingProfile = true },
+                                modifier = Modifier.fillMaxWidth().height(50.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
+                                shape = RoundedCornerShape(12.dp),
+                                elevation = ButtonDefaults.buttonElevation(0.dp)
+                            ) {
+                                Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Edit Profil", fontWeight = FontWeight.Bold)
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            OutlinedButton(
+                                onClick = { showPasswordDialog = true },
+                                modifier = Modifier.fillMaxWidth().height(50.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextBlack)
+                            ) {
+                                Icon(Icons.Default.Lock, null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Ganti Kata Sandi")
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Tombol Keluar (Merah tapi soft)
+                            TextButton(
+                                onClick = {
+                                    sessionManager.clearSession()
+                                    onLogout()
+                                },
+                                modifier = Modifier.fillMaxWidth().height(50.dp),
+                                colors = ButtonDefaults.textButtonColors(contentColor = AlertRed)
+                            ) {
+                                Text("Keluar Akun", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
 
+                // Footer Version (Opsional)
                 Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = { isEditingProfile = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MainBlue)
-                ) {
-                    Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Edit Profil", fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Button(
-                    onClick = { showPasswordDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MainBlue)
-                ) {
-                    Icon(Icons.Default.Lock, null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Ganti Password", fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                OutlinedButton(
-                    onClick = { sessionManager.clearSession(); onLogout() },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AlertRed),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, AlertRed)
-                ) {
-                    Text("Keluar", fontWeight = FontWeight.Bold)
-                }
+                Text(
+                    text = "Versi Aplikasi 1.0.0",
+                    fontSize = 12.sp,
+                    color = TextGray.copy(alpha = 0.7f)
+                )
             }
         }
+    }
+}
+
+// --- Helper Components Lokal ---
+
+@Composable
+fun InfoRowMinimal(label: String, value: String) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = TextGray,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            color = TextBlack,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -278,30 +305,49 @@ fun GantiPasswordDialog(onDismiss: () -> Unit, onSubmit: (String, String) -> Uni
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ganti Kata Sandi") },
+        containerColor = SurfaceWhite,
+        title = { Text("Ganti Kata Sandi", color = TextBlack, fontWeight = FontWeight.Bold) },
         text = {
             Column {
                 OutlinedTextField(
                     value = lama,
                     onValueChange = { lama = it },
                     label = { Text("Sandi Lama") },
-                    visualTransformation = PasswordVisualTransformation()
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MainBlue,
+                        unfocusedBorderColor = BorderGray
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = baru,
                     onValueChange = { baru = it },
                     label = { Text("Sandi Baru") },
-                    visualTransformation = PasswordVisualTransformation()
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MainBlue,
+                        unfocusedBorderColor = BorderGray
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
         },
         confirmButton = {
-            Button(onClick = { onSubmit(lama, baru) }) { Text("Simpan") }
+            Button(
+                onClick = { onSubmit(lama, baru) },
+                colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
+                shape = RoundedCornerShape(8.dp)
+            ) { Text("Simpan") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Batal") }
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = TextGray)
+            ) { Text("Batal") }
         }
     )
 }
-

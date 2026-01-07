@@ -3,13 +3,16 @@ package com.example.silpa.ui.screens
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -18,7 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,10 +31,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.silpa.R
 import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.RegisterDto
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -39,7 +44,6 @@ fun RegisterScreen(navController: NavController) {
     var nama by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    // State untuk toggle visibility password
     var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
 
@@ -49,248 +53,161 @@ fun RegisterScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Menghitung kekuatan password dan warnanya
     val (passwordStrength, strengthColor) = calculatePasswordStrength(password)
-    // Animasi halus untuk progress bar
-    val animatedProgress by animateFloatAsState(
-        targetValue = passwordStrength,
-        animationSpec = tween(durationMillis = 500), label = "progressAnim"
-    )
+    val animatedProgress by animateFloatAsState(targetValue = passwordStrength, animationSpec = tween(500), label = "strength")
 
     if (showErrorDialog) {
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
-            title = { Row { Icon(Icons.Default.Error, null, tint = AlertRed); Spacer(Modifier.width(8.dp)); Text("Gagal Daftar", color = AlertRed, fontFamily = poppinsFont) } },
-            text = { Text(errorMessage, fontFamily = poppinsFont) },
-            confirmButton = { TextButton(onClick = { showErrorDialog = false }) { Text("OK", fontFamily = poppinsFont) } }
+            title = { Row { Icon(Icons.Default.Error, null, tint = AlertRed); Spacer(Modifier.width(8.dp)); Text("Gagal Daftar", color = AlertRed) } },
+            text = { Text(errorMessage) },
+            confirmButton = { TextButton(onClick = { showErrorDialog = false }) { Text("OK") } }
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(SurfaceWhite)) {
-        Column(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundLight)
+            .padding(16.dp), // Padding luar agar card tidak mepet layar
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()), // Agar bisa discroll di layar kecil
+            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+            shape = RoundedCornerShape(24.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MainBlue),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            // Header dengan gradient background
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp),
-                contentAlignment = Alignment.Center
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp)
+                // LOGO
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(Color.White),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .background(
-                                color = MainBlue.copy(alpha = 0.1f),
-                                shape = RoundedCornerShape(20.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.School, "Logo", tint = MainBlue, modifier = Modifier.size(48.dp))
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "Buat Akun Baru",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = TextBlack,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Daftar untuk memulai",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextGray
+                    Image(
+                        painter = painterResource(id = R.drawable.silpafix),
+                        contentDescription = "Logo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
-            }
 
-            // Form Container
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // Nama Field
-                OutlinedTextField(
-                    value = nama,
-                    onValueChange = { nama = it },
-                    label = { Text("Nama Lengkap", color = TextGray) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MainBlue,
-                        unfocusedBorderColor = BorderGray,
-                        cursorColor = MainBlue
-                    ),
-                    singleLine = true
+                Text(
+                    text = "Buat Akun Baru",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MainBlue,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(16.dp))
 
-                // Email Field
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email", color = TextGray) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MainBlue,
-                        unfocusedBorderColor = BorderGray,
-                        cursorColor = MainBlue
-                    ),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                // INPUT FIELDS
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = nama, onValueChange = { nama = it },
+                        label = { Text("Nama Lengkap") },
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MainBlue, unfocusedBorderColor = BorderGray)
+                    )
+                    OutlinedTextField(
+                        value = email, onValueChange = { email = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MainBlue, unfocusedBorderColor = BorderGray)
+                    )
+                    OutlinedTextField(
+                        value = password, onValueChange = { password = it },
+                        label = { Text("Kata Sandi") },
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = { IconButton(onClick = { passwordVisible = !passwordVisible }) { Icon(if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff, null, tint = TextGray) } },
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MainBlue, unfocusedBorderColor = BorderGray)
+                    )
 
-                // Password Field
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Kata Sandi", color = TextGray) },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                contentDescription = if (passwordVisible) "Sembunyikan Sandi" else "Tampilkan Sandi",
-                                tint = if (passwordVisible) MainBlue else TextGray
-                            )
+                    // Strength Meter
+                    if (password.isNotEmpty()) {
+                        LinearProgressIndicator(
+                            progress = animatedProgress,
+                            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                            color = strengthColor,
+                            trackColor = BorderGray
+                        )
+                        Text(text = getStrengthLabel(passwordStrength), fontSize = 12.sp, color = strengthColor)
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        if (nama.isBlank() || email.isBlank() || password.isBlank()) {
+                            errorMessage = "Semua field harus diisi!"; showErrorDialog = true; return@Button
+                        }
+                        if (password.length < 6) {
+                            errorMessage = "Kata sandi minimal 6 karakter!"; showErrorDialog = true; return@Button
+                        }
+                        scope.launch {
+                            isLoading = true
+                            try {
+                                val api = RetrofitInstance.getApi(context)
+                                val response = api.register(RegisterDto(nama, email, password))
+                                if (response.berhasil) {
+                                    Toast.makeText(context, "Registrasi Berhasil! Silakan Login.", Toast.LENGTH_LONG).show()
+                                    navController.popBackStack()
+                                } else { errorMessage = response.pesan; showErrorDialog = true }
+                            } catch (e: Exception) {
+                                errorMessage = when(e) {
+                                    is HttpException -> if (e.code() == 409) "Email sudah terdaftar." else "Gagal mendaftar."
+                                    is IOException -> "Masalah koneksi internet."
+                                    else -> "Error: ${e.localizedMessage}"
+                                }
+                                showErrorDialog = true
+                            } finally { isLoading = false }
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MainBlue,
-                        unfocusedBorderColor = BorderGray,
-                        cursorColor = MainBlue
-                    ),
-                    singleLine = true
-                )
-
-                // Indikator Kekuatan Password
-                if (password.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    LinearProgressIndicator(
-                        progress = animatedProgress,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = strengthColor,
-                        trackColor = BorderGray
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = getStrengthLabel(passwordStrength),
-                        fontSize = 12.sp,
-                        color = strengthColor,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.align(Alignment.Start)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Register Button
-            Button(
-                onClick = {
-                    if (nama.isBlank() || email.isBlank() || password.isBlank()) {
-                        errorMessage = "Semua field harus diisi!"
-                        showErrorDialog = true
-                        return@Button
-                    }
-                    if (password.length < 6) {
-                        errorMessage = "Kata sandi minimal 6 karakter!"
-                        showErrorDialog = true
-                        return@Button
-                    }
-                    scope.launch {
-                        isLoading = true
-                        try {
-                            val api = RetrofitInstance.getApi(context)
-                            val response = api.register(RegisterDto(nama, email, password))
-
-                            if (response.berhasil) {
-                                Toast.makeText(context, "Registrasi Berhasil! Silakan Login.", Toast.LENGTH_LONG).show()
-                                navController.popBackStack()
-                            } else {
-                                errorMessage = response.pesan
-                                showErrorDialog = true
-                            }
-                        } catch (e: Exception) {
-                            errorMessage = when(e) {
-                                is HttpException -> if (e.code() == 409) "Email sudah terdaftar." else "Gagal mendaftar (Error ${e.code()})"
-                                is IOException -> "Masalah koneksi internet."
-                                else -> "Terjadi kesalahan: ${e.localizedMessage}"
-                            }
-                            showErrorDialog = true
-                        } finally {
-                            isLoading = false
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = SurfaceWhite, modifier = Modifier.size(20.dp))
-                } else {
-                    Text("DAFTAR", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Login Link
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Sudah punya akun? ", color = TextGray, fontSize = 14.sp)
-                TextButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.height(32.dp)
+                    colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
+                    enabled = !isLoading
                 ) {
-                    Text("Login", color = MainBlue, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    if (isLoading) CircularProgressIndicator(color = Color.White) else Text("DAFTAR", fontWeight = FontWeight.Bold)
+                }
+
+                TextButton(onClick = { navController.popBackStack() }) {
+                    Text("Sudah punya akun? Kembali ke Login", color = TextGray)
                 }
             }
         }
     }
 }
 
-
+// Helper (Sama seperti sebelumnya)
 fun calculatePasswordStrength(password: String): Pair<Float, Color> {
-    if (password.isEmpty()) return 0f to BorderGray
+    if (password.isEmpty()) return 0f to Color.LightGray
     var score = 0
     if (password.length >= 8) score++
     if (password.any { it.isUpperCase() }) score++
     if (password.any { it.isLowerCase() }) score++
     if (password.any { it.isDigit() }) score++
-    if (password.any { !it.isLetterOrDigit() }) score++ // Simbol
-
+    if (password.any { !it.isLetterOrDigit() }) score++
     return when (score) {
-        0, 1 -> 0.2f to AlertRed       // Sangat Lemah
-        2 -> 0.4f to WarningYellow     // Lemah
-        3 -> 0.6f to Color.Yellow      // Sedang
-        4 -> 0.8f to SuccessGreen.copy(alpha = 0.7f) // Kuat
-        5 -> 1.0f to SuccessGreen      // Sangat Kuat
+        0, 1 -> 0.2f to AlertRed
+        2 -> 0.4f to WarningYellow
+        3 -> 0.6f to Color.Yellow
+        4 -> 0.8f to SuccessGreen
+        5 -> 1.0f to SuccessGreen
         else -> 0.2f to AlertRed
     }
 }

@@ -4,9 +4,10 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge // Import Penting
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
@@ -16,6 +17,8 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -29,15 +32,16 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.data.SessionManager
 import com.example.silpa.ui.screens.*
 import com.example.silpa.ui.theme.SilpaTheme
-import com.example.silpa.ui.theme.*
+import com.example.silpa.ui.theme.BackgroundLight
+import com.example.silpa.ui.theme.SurfaceWhite
+import com.example.silpa.ui.theme.MainBlue
+import com.example.silpa.ui.theme.BorderGray
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 1. Aktifkan Edge-to-Edge agar status bar transparan & full screen
         enableEdgeToEdge()
-
         setContent {
             SilpaTheme {
                 SilpaApp()
@@ -56,7 +60,6 @@ fun SilpaApp() {
     var userRole by remember { mutableStateOf<String?>(null) }
     val isLoggedIn = remember { mutableStateOf(sessionManager.getToken() != null) }
 
-    // Cek Role Awal
     LaunchedEffect(isLoggedIn.value) {
         if (isLoggedIn.value) {
             try {
@@ -84,78 +87,91 @@ fun SilpaApp() {
     )
 
     Scaffold(
-        // Tambahkan warna container transparan/putih agar aman
-        containerColor = Color.White,
+        containerColor = BackgroundLight, // Menggunakan BackgroundLight dari Color.kt
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-                    if (isAdmin) {
-                        // --- MENU ADMIN ---
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Home, "Home") },
-                            label = { Text("Home") },
-                            selected = currentRoute == "admin_dashboard",
-                            onClick = { navController.navigate("admin_dashboard") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.History, "History") },
-                            label = { Text("History") },
-                            selected = currentRoute == "admin_history",
-                            onClick = { navController.navigate("admin_history") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Notifications, "Notifikasi") },
-                            label = { Text("Info") },
-                            selected = currentRoute == "admin_notifications",
-                            onClick = { navController.navigate("admin_notifications") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Person, "Profil") },
-                            label = { Text("Profil") },
-                            selected = currentRoute == "admin_profile",
-                            onClick = { navController.navigate("admin_profile") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                    } else {
-                        // --- MENU MAHASISWA ---
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Home, "Beranda") },
-                            label = { Text("Beranda") },
-                            selected = currentRoute == "dashboard",
-                            onClick = { navController.navigate("dashboard") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Info, "Info Izin") },
-                            label = { Text("Info") },
-                            selected = currentRoute == "landing",
-                            onClick = { navController.navigate("landing") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.History, "Riwayat") },
-                            label = { Text("Riwayat") },
-                            selected = currentRoute == "history",
-                            onClick = { navController.navigate("history") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Notifications, "Pesan") },
-                            label = { Text("Pesan") },
-                            selected = currentRoute == "notifications",
-                            onClick = { navController.navigate("notifications") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
-                        NavigationBarItem(
-                            icon = { Icon(Icons.Outlined.Person, "Profil") },
-                            label = { Text("Profil") },
-                            selected = currentRoute == "profile",
-                            onClick = { navController.navigate("profile") },
-                            colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
-                        )
+                // --- NAV BAR BULAT TERSUAI ---
+                Surface(
+                    color = SurfaceWhite, // Menggunakan SurfaceWhite
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), // Melengkung di atas
+                    shadowElevation = 16.dp, // Bayangan agar kelihatan terapung
+                    modifier = Modifier
+                        .padding(bottom = 0.dp) // Pastikan rapat di bawah (kerana edge-to-edge)
+                        .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                ) {
+                    NavigationBar(
+                        containerColor = Color.Transparent, // Telus agar ikut warna Surface
+                        tonalElevation = 0.dp,
+                        modifier = Modifier.padding(top = 4.dp) // Sedikit padding atas dalaman
+                    ) {
+                        if (isAdmin) {
+                            // --- MENU ADMIN ---
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Home, "Home") },
+                                label = { Text("Home") },
+                                selected = currentRoute == "admin_dashboard",
+                                onClick = { navController.navigate("admin_dashboard") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.History, "History") },
+                                label = { Text("History") },
+                                selected = currentRoute == "admin_history",
+                                onClick = { navController.navigate("admin_history") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Notifications, "Notifikasi") },
+                                label = { Text("Info") },
+                                selected = currentRoute == "admin_notifications",
+                                onClick = { navController.navigate("admin_notifications") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Person, "Profil") },
+                                label = { Text("Profil") },
+                                selected = currentRoute == "admin_profile",
+                                onClick = { navController.navigate("admin_profile") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                        } else {
+                            // --- MENU MAHASISWA ---
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Home, "Beranda") },
+                                label = { Text("Beranda") },
+                                selected = currentRoute == "dashboard",
+                                onClick = { navController.navigate("dashboard") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Info, "Info Izin") },
+                                label = { Text("Info") },
+                                selected = currentRoute == "landing",
+                                onClick = { navController.navigate("landing") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.History, "Riwayat") },
+                                label = { Text("Riwayat") },
+                                selected = currentRoute == "history",
+                                onClick = { navController.navigate("history") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Notifications, "Pesan") },
+                                label = { Text("Pesan") },
+                                selected = currentRoute == "notifications",
+                                onClick = { navController.navigate("notifications") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                            NavigationBarItem(
+                                icon = { Icon(Icons.Outlined.Person, "Profil") },
+                                label = { Text("Profil") },
+                                selected = currentRoute == "profile",
+                                onClick = { navController.navigate("profile") },
+                                colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
+                            )
+                        }
                     }
                 }
             }
@@ -166,9 +182,10 @@ fun SilpaApp() {
             startDestination = if (isLoggedIn.value) {
                 if (userRole == "ADMIN") "admin_dashboard" else "dashboard"
             } else "landing",
+            // Hanya ambil bottom padding agar kandungan tidak tertutup navbar, tapi biarkan top padding (status bar) diurus skrin masing-masing
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
-            //  PUBLIC
+            // --- PUBLIC ---
             composable("landing") { LandingScreen(navController) }
             composable("login") {
                 LoginScreen(
@@ -184,7 +201,7 @@ fun SilpaApp() {
             }
             composable("register") { RegisterScreen(navController) }
 
-            //  MAHASISWA ROUTES
+            // --- MAHASISWA ROUTES ---
             composable("dashboard") { DashboardScreen(navController) }
             composable("history") { HistoryScreen(navController) }
             composable("notifications") { NotificationScreen(navController) }
@@ -209,7 +226,7 @@ fun SilpaApp() {
                 RevisiIzinScreen(navController, id)
             }
 
-            //  ADMIN ROUTES
+            // --- ADMIN ROUTES ---
             composable("admin_dashboard") { AdminDashboardScreen(navController, sessionManager) }
             composable("admin_validasi_list") { AdminValidasiListScreen(navController) }
             composable(
@@ -221,6 +238,8 @@ fun SilpaApp() {
             }
             composable("admin_history") { AdminHistoryScreen(navController) }
             composable("admin_mahasiswa") { AdminMahasiswaScreen(navController) }
+
+            // Route Detail Mahasiswa Admin
             composable(
                 "admin_mahasiswa_detail/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
@@ -228,6 +247,7 @@ fun SilpaApp() {
                 val id = backStackEntry.arguments?.getLong("id") ?: 0L
                 AdminMahasiswaDetailScreen(navController, id)
             }
+
             composable("admin_statistik") { AdminStatistikScreen(navController) }
             composable("admin_notifications") { NotificationScreen(navController) }
             composable("admin_profile") {

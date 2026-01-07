@@ -1,10 +1,13 @@
 package com.example.silpa.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,19 +18,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.silpa.R
 import com.example.silpa.data.RetrofitInstance
-import com.example.silpa.data.SessionManager // Import SessionManager
+import com.example.silpa.data.SessionManager
 import com.example.silpa.model.InfoDetailIzinDto
 import com.example.silpa.model.InfoJenisIzinDto
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
-import com.example.silpa.ui.components.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +39,7 @@ import kotlinx.coroutines.launch
 fun LandingScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val sessionManager = remember { SessionManager(context) } // Inisialisasi SessionManager
+    val sessionManager = remember { SessionManager(context) }
 
     // Cek status login
     val isLoggedIn = remember { sessionManager.getToken() != null }
@@ -69,76 +73,119 @@ fun LandingScreen(navController: NavController) {
                 ExtendedFloatingActionButton(
                     onClick = { navController.navigate("login") },
                     containerColor = MainBlue,
-                    contentColor = SurfaceWhite,
+                    contentColor = Color.White,
                     icon = { Icon(Icons.Default.Login, "Login") },
                     text = { Text("Login / Daftar") }
                 )
             }
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(SurfaceWhite)
         ) {
+            // --- HEADER HERO SECTION BARU ---
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.verticalGradient(listOf(MainBlue, MainBlue)))
-                        .padding(vertical = 40.dp)
+                        .height(320.dp) // Sedikit lebih tinggi
+                        .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
+                        .background(
+                            // Gradasi Variatif: Biru -> Biru Muda -> Putih
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    MainBlue,
+                                    Color(0xFF64B5F6), // Biru lebih muda
+                                    Color.White        // Putih di bawah
+                                )
+                            )
+                        )
                 ) {
+                    // Pattern Lingkaran Dekoratif (Putih Transparan)
+                    Box(
+                        modifier = Modifier
+                            .size(250.dp)
+                            .offset(x = (-80).dp, y = (-80).dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.15f))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(180.dp)
+                            .align(Alignment.CenterEnd)
+                            .offset(x = 60.dp, y = (-40).dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.1f))
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(120.dp)
+                            .align(Alignment.BottomStart)
+                            .offset(x = 40.dp, y = 20.dp)
+                            .clip(CircleShape)
+                            .background(MainBlue.copy(alpha = 0.05f))
+                    )
+
+                    // Konten Header
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .background(
-                                    color = SurfaceWhite.copy(alpha = 0.15f),
-                                    shape = RoundedCornerShape(20.dp)
-                                ),
-                            contentAlignment = Alignment.Center
+                        // LOGO SILPA (Lingkaran Penuh)
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White,
+                            modifier = Modifier.size(110.dp), // Ukuran diperbesar
+                            shadowElevation = 8.dp, // Shadow lebih dalam agar pop-out
+                            border = BorderStroke(3.dp, Color.White)
                         ) {
-                            Icon(Icons.Default.School, null, tint = SurfaceWhite, modifier = Modifier.size(48.dp))
+                            Image(
+                                painter = painterResource(id = R.drawable.silpafix),
+                                contentDescription = "Logo SILPA",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape), // Pastikan gambar terpotong lingkaran
+                                contentScale = ContentScale.Crop // Crop agar memenuhi lingkaran (tidak ada ruang kosong)
+                            )
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
                         Text(
-                            "SILPA",
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = SurfaceWhite,
+                            "Selamat Datang di SILPA",
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MainBlue, // Ubah ke biru agar kontras dengan background putih di bawah
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Sistem Informasi Layanan\nPerizinan Akademik",
+                            "Pusat Layanan Perizinan Akademik Terpadu\nFakultas Teknik",
                             fontSize = 14.sp,
-                            color = SurfaceWhite.copy(alpha = 0.9f),
+                            color = TextGray, // Warna abu-abu agar elegan
                             textAlign = TextAlign.Center,
-                            lineHeight = 20.sp,
-                            fontWeight = FontWeight.Medium
+                            lineHeight = 20.sp
                         )
                     }
                 }
             }
 
             item {
-                Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 32.dp, bottom = 16.dp)) {
+                Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp)) {
                     Text(
                         "Informasi Perizinan",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         color = TextBlack
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Pilih jenis izin untuk melihat persyaratan lengkap",
-                        fontSize = 13.sp,
+                        "Pilih jenis izin untuk melihat syarat & detail.",
+                        fontSize = 12.sp,
                         color = TextGray
                     )
                 }
@@ -157,7 +204,7 @@ fun LandingScreen(navController: NavController) {
             ModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
                 sheetState = sheetState,
-                containerColor = Color.White
+                containerColor = SurfaceWhite
             ) {
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 48.dp)) {
                     Text(
@@ -166,12 +213,12 @@ fun LandingScreen(navController: NavController) {
                         fontWeight = FontWeight.Bold,
                         color = MainBlue
                     )
-                    Divider(modifier = Modifier.padding(vertical = 16.dp))
+                    Divider(modifier = Modifier.padding(vertical = 16.dp), color = BorderGray)
 
                     val details = selectedJenisIzin?.daftarDetail ?: emptyList()
 
                     if (details.isEmpty()) {
-                        Text("Tidak ada informasi detail untuk izin ini.", color = Color.Gray)
+                        Text("Tidak ada informasi detail untuk izin ini.", color = TextGray)
                     } else {
                         Text("Kategori & Syarat Berkas:", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextBlack)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -180,27 +227,64 @@ fun LandingScreen(navController: NavController) {
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = BackgroundLight),
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.5f))
+                                border = BorderStroke(1.dp, BorderGray)
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CheckCircle, null, tint = SuccessGreen, modifier = Modifier.size(16.dp))
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        Text(detail.namaTampilan, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                        Text(detail.namaTampilan, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextBlack)
                                     }
 
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text(detail.deskripsi, fontSize = 12.sp, color = Color.DarkGray)
+                                    Text(detail.deskripsi, fontSize = 12.sp, color = TextGray)
 
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text("Syarat Dokumen:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MainBlue)
-                                    Text(detail.syarat, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                                    Text(detail.syarat, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = TextBlack)
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun InfoIzinCard(izin: InfoJenisIzinDto, onClick: () -> Unit) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, BorderGray),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MainBlue.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Description, contentDescription = null, tint = MainBlue)
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(izin.namaTampilan, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextBlack)
+            }
+
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = TextGray)
         }
     }
 }

@@ -5,9 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -22,65 +27,66 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.NotifikasiDto
 import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(navController: NavController) {
     val context = LocalContext.current
     var notifList by remember { mutableStateOf<List<NotifikasiDto>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         try {
-            // Perubahan: Menghandle ApiResponse
             val response = RetrofitInstance.getApi(context).getNotifikasi()
             if (response.berhasil && response.data != null) {
                 notifList = response.data
             }
         } catch (e: Exception) {
-            // Handle error
+            e.printStackTrace()
+        } finally {
+            isLoading = false
         }
     }
 
     Scaffold(
         topBar = {
             SilpaTopAppBar(
-                title = "Notifikasi" ,
-                canNavigateBack = false
+                title = "Notifikasi",
+                canNavigateBack = true,
+                navigateUp = { navController.popBackStack() }
             )
-        }
+        },
+        containerColor = BackgroundLight // Background abu-abu sangat muda agar kartu putih terlihat
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(SurfaceWhite)
-        ) {
-            if (notifList.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .background(MainBlue.copy(alpha = 0.1f), shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Notifications, null, tint = MainBlue, modifier = Modifier.size(40.dp))
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Belum ada notifikasi", color = TextGray, fontSize = 15.sp)
-                    }
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MainBlue)
+            }
+        } else if (notifList.isEmpty()) {
+            // Tampilan Kosong
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsNone,
+                        contentDescription = null,
+                        tint = TextGray.copy(alpha = 0.5f),
+                        modifier = Modifier.size(80.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Belum ada notifikasi", color = TextGray, fontSize = 16.sp)
                 }
-            } else {
-                LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)) {
-                    items(notifList) { notif ->
-                        NotifItem(notif) {
-                            // Jika ada ID izin, navigasi ke detail
-                            if (notif.id != null) {
-                                navController.navigate("detail_izin/${notif.id}")
-                            }
-                        }
-                    }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .padding(16.dp), // Padding luar list
+                verticalArrangement = Arrangement.spacedBy(12.dp) // Jarak antar kartu
+            ) {
+                // Urutkan dari yang terbaru (id descending atau waktu)
+                items(notifList.sortedByDescending { it.id }) { notif ->
+                    NotifCardItem(notif)
                 }
             }
         }
@@ -88,32 +94,88 @@ fun NotificationScreen(navController: NavController) {
 }
 
 @Composable
-fun NotifItem(notif: NotifikasiDto, onClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+fun NotifCardItem(notif: NotifikasiDto) {
+    // Tentukan gaya berdasarkan status baca
+    val cardBgColor = if (notif.sudahDibaca) SurfaceWhite else MainBlue.copy(alpha = 0.05f)
+    val iconTint = if (notif.sudahDibaca) TextGray else MainBlue
+    val iconBg = if (notif.sudahDibaca) BorderGray.copy(alpha = 0.3f) else MainBlue.copy(alpha = 0.1f)
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = cardBgColor),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, if(notif.sudahDibaca) BorderGray else MainBlue.copy(alpha = 0.3f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-                .clickable { onClick() },
-            verticalAlignment = Alignment.Top
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.Top // Icon tetap di atas jika teks panjang
         ) {
+            // Icon Notifikasi Bulat
+            Surface(
+                shape = CircleShape,
+                color = iconBg,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = if (notif.sudahDibaca) Icons.Default.NotificationsNone else Icons.Default.NotificationsActive,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
             Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Judul Pesan (Jika ada field judul, kalau tidak ada pakai snippet pesan)
+                    // Asumsi: pesan cukup pendek untuk jadi judul, atau backend kirim "judul"
+                    // Di DTO: data class NotifikasiDto(id, pesan, waktu, sudahDibaca) -> tidak ada judul
+                    // Kita bisa hardcode judul atau pakai teks statis
+                    Text(
+                        text = "Info Perizinan",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = if(notif.sudahDibaca) TextBlack else MainBlue
+                    )
+
+                    // Waktu (Tanggal)
+                    Text(
+                        text = notif.waktu.take(10), // Ambil YYYY-MM-DD saja
+                        fontSize = 10.sp,
+                        color = TextGray
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
-                    notif.pesan,
-                    fontWeight = if (notif.sudahDibaca) FontWeight.Medium else FontWeight.SemiBold,
-                    color = TextBlack,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp
+                    text = notif.pesan,
+                    fontSize = 13.sp,
+                    color = if(notif.sudahDibaca) TextGray else TextBlack,
+                    lineHeight = 18.sp
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    notif.waktu.take(10),
-                    fontSize = 12.sp,
-                    color = TextGray,
-                    fontWeight = FontWeight.Normal
+            }
+
+            // Indikator Belum Dibaca (Titik Biru Kecil)
+            if (!notif.sudahDibaca) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(AlertRed, CircleShape)
+                        .align(Alignment.CenterVertically)
                 )
             }
         }
-        Divider(color = BorderGray, thickness = 1.dp)
     }
 }

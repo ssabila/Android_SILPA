@@ -8,6 +8,8 @@
         <!-- Untuk HP Fisik (Ganti IP ini dengan IP Laptop Anda) -->
         <domain includeSubdomains="true">10.100.165.1</domain>
 
+        <domain includeSubdomains="true">192.168.0.24</domain>
+
         <!-- Tambahkan IP lain jika perlu -->
     </domain-config>
 </network-security-config>

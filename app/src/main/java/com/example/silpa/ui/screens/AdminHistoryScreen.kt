@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -19,9 +20,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.PerizinanDto
+import com.example.silpa.ui.components.BadgeStatus
+import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
-import com.example.silpa.ui.components.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,9 +47,11 @@ fun AdminHistoryScreen(navController: NavController) {
         topBar = {
             SilpaTopAppBar(
                 title = "Riwayat Semua Perizinan",
-                canNavigateBack = false
+                canNavigateBack = true,
+                navigateUp = { navController.popBackStack() }
             )
-        }
+        },
+        containerColor = BackgroundLight
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -58,21 +61,20 @@ fun AdminHistoryScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(SurfaceWhite)
                     .padding(padding)
                     .padding(16.dp)
             ) {
                 if (listIzin.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Belum ada riwayat perizinan.", color = Color.Gray)
+                        Text("Belum ada riwayat perizinan.", color = TextGray)
                     }
                 } else {
                     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // Urutkan berdasarkan ID descending (terbaru di atas) atau tanggal jika ada
+                        // URUTKAN DARI YANG PALING BARU (ID DESCENDING)
                         items(listIzin.sortedByDescending { it.id }) { izin ->
-                            AdminHistoryItem(izin) {
-                                // Navigasi ke detail izin
-                                navController.navigate("detail_izin/${izin.id}")
+                            AdminHistoryItemColored(izin) {
+                                // Navigasi ke detail (validasi) screen jika diklik
+                                navController.navigate("admin_validasi/${izin.id}")
                             }
                         }
                     }
@@ -83,15 +85,34 @@ fun AdminHistoryScreen(navController: NavController) {
 }
 
 @Composable
-fun AdminHistoryItem(izin: PerizinanDto, onClick: () -> Unit) {
+fun AdminHistoryItemColored(izin: PerizinanDto, onClick: () -> Unit) {
+    // 1. Tentukan Warna Background berdasarkan Jenis Izin
+    val cardBgColor = when (izin.jenisIzin) {
+        "SAKIT" -> SurfaceWhite
+        "DISPENSASI_INSTITUSI", "DISPENSASI" -> SurfaceWhite
+        "IZIN_ALASAN_PENTING" -> SurfaceWhite
+        else -> SurfaceWhite
+    }
+
+    // 2. Tentukan Warna Border (sedikit lebih gelap/transparan dari warna utama tema)
+    val borderColor = when (izin.jenisIzin) {
+        "SAKIT" -> IzinSakitColor.copy(alpha = 0.5f)
+        "DISPENSASI_INSTITUSI", "DISPENSASI" -> IzinDispensasiColor.copy(alpha = 0.5f)
+        "IZIN_ALASAN_PENTING" -> IzinPentingColor.copy(alpha = 0.5f)
+        else -> BorderGray
+    }
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBgColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat design
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Header: Nama & Status
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth(),
@@ -101,41 +122,50 @@ fun AdminHistoryItem(izin: PerizinanDto, onClick: () -> Unit) {
                     text = izin.mahasiswaNama ?: "Mahasiswa",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = MainBlue
+                    color = TextBlack
                 )
                 BadgeStatus(izin.status)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Jenis Izin", fontSize = 12.sp, color = Color.Gray)
+            // Body: Jenis & Tanggal
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Label Jenis Izin Kecil
+                Surface(
+                    color = SurfaceWhite.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
                     Text(
-                        text = "${izin.jenisIzin} - ${izin.detailIzin}",
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
+                        text = izin.jenisIzin.replace("_", " "),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextGray
                     )
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Tanggal Mulai", fontSize = 12.sp, color = Color.Gray)
-                    Text(
-                        text = izin.tanggalMulai,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
-                    )
-                }
+                Text(
+                    text = izin.detailIzin.replace("_", " "),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextBlack
+                )
             }
 
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Mulai: ${izin.tanggalMulai}", fontSize = 12.sp, color = TextGray)
+
+            // Catatan Admin (Jika ada)
             if (!izin.catatanAdmin.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color.LightGray.copy(alpha = 0.5f))
+                HorizontalDivider(color = borderColor, thickness = 0.5.dp) // Divider warna sesuai border
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Catatan: ${izin.catatanAdmin}",
                     fontSize = 12.sp,
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    color = Color.DarkGray
+                    color = TextGray
                 )
             }
         }
