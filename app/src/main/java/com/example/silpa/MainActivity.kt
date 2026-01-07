@@ -161,21 +161,14 @@ fun SilpaApp() {
             }
         }
     ) { innerPadding ->
-        // 2. PERBAIKAN PADDING:
-        // Jangan gunakan 'innerPadding' mentah-mentah karena itu berisi top padding (status bar).
-        // Kita hanya butuh bottom padding (untuk navigasi bawah).
-        // Padding atas akan ditangani oleh Scaffold di masing-masing screen (TopAppBar).
         NavHost(
             navController = navController,
             startDestination = if (isLoggedIn.value) {
                 if (userRole == "ADMIN") "admin_dashboard" else "dashboard"
             } else "landing",
-            // Hanya terapkan padding bawah, biarkan padding atas 0 agar TopBar naik ke status bar
             modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
-            // ... (Isi NavHost SAMA SEPERTI SEBELUMNYA, tidak ada perubahan rute) ...
-
-            // --- PUBLIC ---
+            //  PUBLIC
             composable("landing") { LandingScreen(navController) }
             composable("login") {
                 LoginScreen(
@@ -191,7 +184,7 @@ fun SilpaApp() {
             }
             composable("register") { RegisterScreen(navController) }
 
-            // --- MAHASISWA ROUTES ---
+            //  MAHASISWA ROUTES
             composable("dashboard") { DashboardScreen(navController) }
             composable("history") { HistoryScreen(navController) }
             composable("notifications") { NotificationScreen(navController) }
@@ -216,7 +209,7 @@ fun SilpaApp() {
                 RevisiIzinScreen(navController, id)
             }
 
-            // --- ADMIN ROUTES ---
+            //  ADMIN ROUTES
             composable("admin_dashboard") { AdminDashboardScreen(navController, sessionManager) }
             composable("admin_validasi_list") { AdminValidasiListScreen(navController) }
             composable(

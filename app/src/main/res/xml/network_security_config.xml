@@ -6,7 +6,7 @@
         <domain includeSubdomains="true">10.0.2.2</domain>
 
         <!-- Untuk HP Fisik (Ganti IP ini dengan IP Laptop Anda) -->
-        <domain includeSubdomains="true">10.30.31.25</domain>
+        <domain includeSubdomains="true">10.100.165.1</domain>
 
         <!-- Tambahkan IP lain jika perlu -->
     </domain-config>

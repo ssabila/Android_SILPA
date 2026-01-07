@@ -30,7 +30,7 @@ interface SilpaApiService {
     @GET("admin/dashboard")
     suspend fun getAdminDashboard(): AdminDashboardDto
 
-    // --- ADMIN MAHASISWA ---
+    // ADMIN MAHASISWA
     @GET("admin/mahasiswa")
     suspend fun getAllMahasiswa(): List<ProfilPenggunaDto>
 
@@ -55,13 +55,11 @@ interface SilpaApiService {
         @Part berkas: List<MultipartBody.Part>
     ): PerizinanDto
 
-    // --- TAMBAHAN BARU UNTUK DETAIL & REVISI ---
-
-    // 1. Get Detail by ID
+    // Get Detail by ID
     @GET("perizinan/{id}")
     suspend fun getPerizinanById(@Path("id") id: Long): PerizinanDto
 
-    // 2. Revisi Izin (PUT Multipart)
+    // Revisi Izin
     @Multipart
     @PUT("perizinan/{id}/revisi")
     suspend fun revisiIzin(
@@ -70,9 +68,7 @@ interface SilpaApiService {
         @Part berkas: List<MultipartBody.Part>
     ): PerizinanDto
 
-    // --- PERBAIKAN VALIDASI ADMIN ---
-    // Sesuai PerizinanController: @PutMapping("/{id}/status") dengan @RequestBody UpdateStatusDto
-    // Return: PerizinanDto (bukan ApiResponse)
+    // VALIDASI ADMIN
     @PUT("perizinan/{id}/status")
     suspend fun validasiIzin(
         @Path("id") id: Long,
@@ -88,15 +84,14 @@ interface SilpaApiService {
         @Query("tahun") tahun: Int? = null
     ): List<PerizinanDto>
 
-    // Info & Stats
+    // Info
     @GET("info-perizinan")
     suspend fun getInfoJenisIzin(): ApiResponse<List<InfoJenisIzinDto>>
 
     @GET("notifikasi/saya")
     suspend fun getNotifikasi(): ApiResponse<List<NotifikasiDto>>
 
-    // --- STATISTIK ---
-    // Endpoint sesuai StatistikController.java backend Anda
+    // STATISTIK
     @GET("statistik/per-jenis-izin")
     suspend fun getStatistikPerJenis(): ApiResponse<List<StatistikPerJenisDto>>
 

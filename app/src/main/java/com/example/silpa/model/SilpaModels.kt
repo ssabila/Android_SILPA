@@ -1,13 +1,13 @@
 package com.example.silpa.model
 
-// --- Wrapper Response ---
+//  Wrapper Response
 data class ApiResponse<T>(
     val berhasil: Boolean,
     val pesan: String,
     val data: T?
 )
 
-// --- Auth & User ---
+//  Auth & User
 data class LoginDto(val email: String, val kataSandi: String)
 data class RegisterDto(val namaLengkap: String, val email: String, val kataSandi: String, val peran: String = "MAHASISWA")
 data class JwtAuthResponseDto(val accessToken: String, val tokenType: String)
@@ -15,7 +15,7 @@ data class ProfilPenggunaDto(val id: Long, val namaLengkap: String, val email: S
 data class PerbaruiProfilDto(val namaLengkap: String, val email: String)
 data class GantiKataSandiDto(val sandiLama: String, val sandiBaru: String)
 
-// --- Perizinan & Berkas ---
+//  Perizinan & Berkas
 data class BerkasDto(
     val id: Long?,
     val namaFile: String,
@@ -54,13 +54,13 @@ data class AjukanIzinDto(
     val daftarSesi: List<DetailSesiIzinDto>
 )
 
-// --- Validasi Admin ---
+//  Validasi Admin
 data class UpdateStatusDto(
     val status: String,
     val catatanAdmin: String
 )
 
-// --- Info Publik (Landing Page) ---
+//  Info Publik (Landing Page)
 data class InfoDetailIzinDto(
     val namaEnum: String,
     val namaTampilan: String,
@@ -74,12 +74,12 @@ data class InfoJenisIzinDto(
     val daftarDetail: List<InfoDetailIzinDto>?
 )
 
-// --- Statistik ---
+//  Statistik
 data class StatistikPerJenisDto(val jenisIzin: String, val namaJenisIzin: String?, val jumlahPengajuan: Long)
 data class StatistikPerBulanDto(val tahun: Int, val bulan: Int, val namaBulanTahun: String, val jumlahPengajuan: Long)
 data class StatistikTrendDto(val jumlahBulanIni: Long, val jumlahBulanLalu: Long, val persentasePerubahan: Double, val deskripsiPerubahan: String)
 
-// --- Notifikasi ---
+//  Notifikasi
 data class NotifikasiDto(
     val id: Long?,
     val perizinanId: Long?,
@@ -88,7 +88,7 @@ data class NotifikasiDto(
     val sudahDibaca: Boolean
 )
 
-// --- DASHBOARD ADMIN ---
+//  DASHBOARD ADMIN
 data class AdminDashboardDto(
     val totalPengajuanSemuaWaktu: Long,
     val jumlahPengajuanPerStatus: Map<String, Long>?,
@@ -99,7 +99,7 @@ data class AdminDashboardDto(
     val pengajuanPerluDiproses: List<PerizinanDto>?
 )
 
-// --- DATA MAHASISWA (Admin) ---
+//  DATA MAHASISWA (Admin)
 data class MahasiswaDetailAdminDto(
     val profil: ProfilPenggunaDto,
     val totalIzinDiajukan: Long,
@@ -109,7 +109,7 @@ data class MahasiswaDetailAdminDto(
     val daftarSemuaPerizinan: List<PerizinanDto>?
 )
 
-// --- DASHBOARD MAHASISWA ---
+// DASHBOARD MAHASISWA
 data class MahasiswaDashboardDto(
     val totalIzinDiajukan: Long,
     val breakdownPerStatus: Map<String, Long>?,

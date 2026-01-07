@@ -230,9 +230,10 @@ fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, on
 @Composable
 fun AdminMenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(2.dp, MainBlue),
         modifier = modifier
             .height(110.dp)
             .clickable { onClick() }

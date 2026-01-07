@@ -7,9 +7,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    // 10.0.2.2 adalah IP localhost khusus untuk Emulator Android standar.
+    // Jiak mengguhnakan emulator, ganti dengan 10.0.2.2 adalah IP localhost untuk emulator
     // Jika menggunakan device fisik (HP), ganti dengan IP Laptop (misal: 192.168.1.x)
-    private const val BASE_URL = "http://10.30.31.25:8080/api/"
+    private const val BASE_URL = "http://10.100.165.1:8080/api/"
 
     fun getApi(context: Context): SilpaApiService {
         val sessionManager = SessionManager(context)
