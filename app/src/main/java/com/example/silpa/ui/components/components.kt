@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.silpa.model.PerizinanDto
 import com.example.silpa.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,25 +150,6 @@ fun DropdownInput(value: String, options: List<String>, onSelectionChanged: (Str
         }
     }
 }
-//
-//@Composable
-//fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-//    Card(
-//        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-//        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-//        modifier = modifier.height(90.dp).clickable { onClick() }
-//    ) {
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//            verticalArrangement = Arrangement.Center,
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Icon(icon, null, tint = MainBlue, modifier = Modifier.size(28.dp))
-//            Spacer(modifier = Modifier.height(4.dp))
-//            Text(title, fontWeight = FontWeight.Medium, fontSize = 13.sp, color = TextGray)
-//        }
-//    }
-//}
 
 @Composable
 fun AdminMenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -342,6 +324,95 @@ fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, on
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = TextBlack)
+        }
+    }
+}
+
+
+@Composable
+fun HistoryItem(izin: PerizinanDto, onClick: () -> Unit) {
+    // 1. Tentukan Warna Background berdasarkan Jenis Izin
+    val cardBgColor = when (izin.jenisIzin) {
+        "SAKIT" -> SurfaceWhite
+        "DISPENSASI_INSTITUSI", "DISPENSASI" -> SurfaceWhite
+        "IZIN_ALASAN_PENTING" -> SurfaceWhite
+        else -> SurfaceWhite
+    }
+
+    // 2. Tentukan Warna Border (sedikit lebih gelap/transparan dari warna utama tema)
+    val borderColor = when (izin.jenisIzin) {
+        "SAKIT" -> IzinSakitColor.copy(alpha = 0.5f)
+        "DISPENSASI_INSTITUSI", "DISPENSASI" -> IzinDispensasiColor.copy(alpha = 0.5f)
+        "IZIN_ALASAN_PENTING" -> IzinPentingColor.copy(alpha = 0.5f)
+        else -> BorderGray
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = cardBgColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat design
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header: Nama & Status
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = izin.mahasiswaNama ?: "Mahasiswa",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = TextBlack
+                )
+                BadgeStatus(izin.status)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Body: Jenis & Tanggal
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Label Jenis Izin Kecil
+                Surface(
+                    color = SurfaceWhite.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = izin.jenisIzin.replace("_", " "),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextGray
+                    )
+                }
+                Text(
+                    text = izin.detailIzin.replace("_", " "),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextBlack
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Mulai: ${izin.tanggalMulai}", fontSize = 12.sp, color = TextGray)
+
+            // Catatan Admin (Jika ada)
+            if (!izin.catatanAdmin.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                HorizontalDivider(color = borderColor, thickness = 0.5.dp) // Divider warna sesuai border
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Catatan: ${izin.catatanAdmin}",
+                    fontSize = 12.sp,
+                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                    color = TextGray
+                )
+            }
         }
     }
 }
