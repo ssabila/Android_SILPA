@@ -211,7 +211,7 @@ fun LoginScreen(
                 }
 
                 TextButton(onClick = { navController.navigate("register") }) {
-                    Text("Belum punya akun? Daftar", color = AccentPurple)
+                    Text("Belum punya akun? Daftar", color = MainBlue)
                 }
             }
         }

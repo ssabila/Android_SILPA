@@ -8,9 +8,14 @@ val AccentPurple = Color(0xFFEF93FF)   // Secondary / Accent
 val AccentPink = Color(0xFFE24B80)     // Special Highlight
 
 // Warna Status & Feedback
-val SuccessGreen = Color(0xFF009FCE)   // Sukses / Approved
+val SuccessGreen = Color(0xFF4CAF50)   // Sukses / Approved
 val WarningYellow = Color(0xFFFFC107)  // Warning / Pending
-val AlertRed = Color(0xFFB41919)       // Alert / Error / Rejected
+val AlertRed = Color(0xFFDE1010)       // Alert / Error / Rejected
+
+// Tambahkan ini - Background tint untuk card
+val SuccessGreenTint = Color(0xFFE2F3E3)  // Light green untuk card approved
+val WarningYellowTint = Color(0xFFF8F0DB) // Light yellow untuk card revisi/pending
+val AlertRedTint =  Color(0xFFFAE7E7)          // Light red untuk card ditolak
 
 // Warna Netral
 val TextBlack = Color(0xFF212529)      // Teks Utama

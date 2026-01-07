@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.PerizinanDto
 import com.example.silpa.ui.components.BadgeStatus
+import com.example.silpa.ui.components.HistoryItem
 import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
 import kotlinx.coroutines.launch

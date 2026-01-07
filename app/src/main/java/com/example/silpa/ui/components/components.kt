@@ -1,5 +1,6 @@
 package com.example.silpa.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -328,90 +330,108 @@ fun MenuCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, on
     }
 }
 
-
 @Composable
 fun HistoryItem(izin: PerizinanDto, onClick: () -> Unit) {
-    // 1. Tentukan Warna Background berdasarkan Jenis Izin
-    val cardBgColor = when (izin.jenisIzin) {
-        "SAKIT" -> SurfaceWhite
-        "DISPENSASI_INSTITUSI", "DISPENSASI" -> SurfaceWhite
-        "IZIN_ALASAN_PENTING" -> SurfaceWhite
-        else -> SurfaceWhite
-    }
-
-    // 2. Tentukan Warna Border (sedikit lebih gelap/transparan dari warna utama tema)
-    val borderColor = when (izin.jenisIzin) {
-        "SAKIT" -> IzinSakitColor.copy(alpha = 0.5f)
-        "DISPENSASI_INSTITUSI", "DISPENSASI" -> IzinDispensasiColor.copy(alpha = 0.5f)
-        "IZIN_ALASAN_PENTING" -> IzinPentingColor.copy(alpha = 0.5f)
-        else -> BorderGray
+    // Warna berdasarkan STATUS - semua dipanggil dari Color.kt
+    val (cardBgColor, accentColor, statusText) = when (izin.status.uppercase()) {
+        "DISETUJUI", "APPROVED" -> Triple(
+            SuccessGreenTint,
+            SuccessGreen,
+            "Disetujui"
+        )
+        "DITOLAK", "REJECTED" -> Triple(
+            AlertRedTint,
+            AlertRed,
+            "Ditolak"
+        )
+        "REVISI", "REVISION", "PERLU_REVISI" -> Triple(
+            WarningYellowTint,
+            WarningYellow,
+            "Perlu Revisi"
+        )
+        "MENUNGGU", "PENDING" -> Triple(
+            WarningYellowTint,
+            WarningYellow,
+            "Menunggu"
+        )
+        else -> Triple(
+            BackgroundLight,
+            TextGray,
+            izin.status
+        )
     }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = cardBgColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat design
-        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
-        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(
+            1.dp,
+            accentColor.copy(alpha = 0.6f)
+        ),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Nama & Status
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = izin.mahasiswaNama ?: "Mahasiswa",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = TextBlack
-                )
-                BadgeStatus(izin.status)
-            }
+        Row {
 
-            Spacer(modifier = Modifier.height(8.dp))
 
-            // Body: Jenis & Tanggal
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Label Jenis Izin Kecil
-                Surface(
-                    color = SurfaceWhite.copy(alpha = 0.6f),
-                    shape = RoundedCornerShape(4.dp),
-                    modifier = Modifier.padding(end = 8.dp)
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Header: Nama & Status Badge
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = izin.jenisIzin.replace("_", " "),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        text = izin.mahasiswaNama ?: "Mahasiswa",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = TextBlack
+                    )
+                    BadgeStatus(izin.status)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Tanggal
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(accentColor.copy(alpha = 0.5f), CircleShape)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        "Mulai: ${izin.tanggalMulai}",
+                        fontSize = 12.sp,
                         color = TextGray
                     )
                 }
-                Text(
-                    text = izin.detailIzin.replace("_", " "),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextBlack
-                )
-            }
 
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("Mulai: ${izin.tanggalMulai}", fontSize = 12.sp, color = TextGray)
+                // Catatan Admin
+                if (!izin.catatanAdmin.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            // Catatan Admin (Jika ada)
-            if (!izin.catatanAdmin.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(color = borderColor, thickness = 0.5.dp) // Divider warna sesuai border
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Catatan: ${izin.catatanAdmin}",
-                    fontSize = 12.sp,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    color = TextGray
-                )
+                    Surface(
+                        color = SurfaceWhite.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            accentColor.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Catatan: " + izin.catatanAdmin,
+                            fontSize = 12.sp,
+                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                            color = TextBlack,
+                            lineHeight = 16.sp,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
             }
         }
     }
