@@ -23,7 +23,6 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.ProfilPenggunaDto
 import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +50,7 @@ fun AdminMahasiswaScreen(navController: NavController) {
                 navigateUp = { navController.popBackStack() }
             )
         },
-        containerColor = BackgroundLight // Background abu-abu sangat muda
+        containerColor = BackgroundLight
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -62,14 +61,13 @@ fun AdminMahasiswaScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp), // Padding kiri-kanan saja
-                verticalArrangement = Arrangement.spacedBy(12.dp), // Jarak antar item
-                contentPadding = PaddingValues(vertical = 16.dp) // Padding atas-bawah list
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 16.dp)
             ) {
                 items(listMhs) { mhs ->
                     MahasiswaMinimalRowItem(mhs) {
                         // Navigasi ke Detail Mahasiswa saat diklik
-                        // Route "admin_mahasiswa_detail/{id}"
                         navController.navigate("admin_mahasiswa_detail/${mhs.id}")
                     }
                 }
@@ -90,13 +88,13 @@ fun AdminMahasiswaScreen(navController: NavController) {
 fun MahasiswaMinimalRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat design
-        border = androidx.compose.foundation.BorderStroke(1.dp, BorderBlue), // Border tipis halus
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, BorderBlue),
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp) // Tinggi tetap agar rapi
-            .clickable { onClick() }, // Bisa diklik
-        shape = RoundedCornerShape(12.dp) // Sudut membulat
+            .height(72.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
@@ -104,7 +102,6 @@ fun MahasiswaMinimalRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon Avatar dengan aksen ungu muda
             Surface(
                 shape = CircleShape,
                 color = AccentPurple.copy(alpha = 0.1f),
@@ -122,7 +119,6 @@ fun MahasiswaMinimalRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Info Text (Nama & Email)
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
@@ -143,12 +139,10 @@ fun MahasiswaMinimalRowItem(mhs: ProfilPenggunaDto, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
-            // Indikator Panah (Memberi hint bahwa item bisa diklik)
             Icon(
                 imageVector = Icons.Default.ArrowForward,
                 contentDescription = "Detail",
-                tint = BorderGray, // Warna samar agar tidak mengganggu
+                tint = BorderGray,
                 modifier = Modifier.size(16.dp)
             )
         }

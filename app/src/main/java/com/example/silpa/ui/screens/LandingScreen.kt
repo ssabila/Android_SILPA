@@ -29,10 +29,8 @@ import androidx.navigation.NavController
 import com.example.silpa.R
 import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.data.SessionManager
-import com.example.silpa.model.InfoDetailIzinDto
 import com.example.silpa.model.InfoJenisIzinDto
 import com.example.silpa.ui.theme.*
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,25 +84,23 @@ fun LandingScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // --- HEADER HERO SECTION BARU ---
+            //   HERO
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(320.dp) // Sedikit lebih tinggi
+                        .height(320.dp)
                         .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
                         .background(
-                            // Gradasi Variatif: Biru -> Biru Muda -> Putih
                             Brush.verticalGradient(
                                 colors = listOf(
                                     MainBlue,
-                                    Color(0xFF64B5F6), // Biru lebih muda
-                                    Color.White        // Putih di bawah
+                                    Color(0xFF64B5F6),
+                                    Color.White
                                 )
                             )
                         )
                 ) {
-                    // Pattern Lingkaran Dekoratif (Putih Transparan)
                     Box(
                         modifier = Modifier
                             .size(250.dp)
@@ -136,12 +132,11 @@ fun LandingScreen(navController: NavController) {
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // LOGO SILPA (Lingkaran Penuh)
                         Surface(
                             shape = CircleShape,
                             color = Color.White,
-                            modifier = Modifier.size(110.dp), // Ukuran diperbesar
-                            shadowElevation = 8.dp, // Shadow lebih dalam agar pop-out
+                            modifier = Modifier.size(110.dp),
+                            shadowElevation = 8.dp,
                             border = BorderStroke(3.dp, Color.White)
                         ) {
                             Image(
@@ -149,8 +144,8 @@ fun LandingScreen(navController: NavController) {
                                 contentDescription = "Logo SILPA",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(CircleShape), // Pastikan gambar terpotong lingkaran
-                                contentScale = ContentScale.Crop // Crop agar memenuhi lingkaran (tidak ada ruang kosong)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         }
 
@@ -160,14 +155,14 @@ fun LandingScreen(navController: NavController) {
                             "Selamat Datang di SILPA",
                             fontSize = 26.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MainBlue, // Ubah ke biru agar kontras dengan background putih di bawah
+                            color = SurfaceWhite,
                             textAlign = TextAlign.Center
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            "Pusat Layanan Perizinan Akademik Terpadu\nFakultas Teknik",
+                            "Sistem Informasi  Layanan Perizinan Akademik Terpadu\nPoliteknik Statistika STIS",
                             fontSize = 14.sp,
-                            color = TextGray, // Warna abu-abu agar elegan
+                            color = TextGray,
                             textAlign = TextAlign.Center,
                             lineHeight = 20.sp
                         )

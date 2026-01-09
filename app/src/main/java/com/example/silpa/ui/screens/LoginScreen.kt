@@ -1,11 +1,12 @@
 package com.example.silpa.ui.screens
 
-import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
@@ -19,8 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,6 +55,7 @@ fun LoginScreen(
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     if (showErrorDialog) {
         AlertDialog(
@@ -83,7 +87,7 @@ fun LoginScreen(
                 .fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
             shape = RoundedCornerShape(24.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MainBlue), // Border Biru
+            border = BorderStroke(1.dp, MainBlue),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(
@@ -91,12 +95,12 @@ fun LoginScreen(
                     .padding(32.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(24.dp) // Jarak antar elemen lebih besar
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 // LOGO SILPA BESAR & ROUND
                 Box(
                     modifier = Modifier
-                        .size(120.dp) // Ukuran besar
+                        .size(120.dp)
                         .clip(CircleShape)
                         .background(Color.White),
                     contentAlignment = Alignment.Center
@@ -131,9 +135,15 @@ fun LoginScreen(
                         label = { Text("Email") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp), // Perbesar tinggi text field
+                            .height(64.dp),
                         shape = RoundedCornerShape(12.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) }
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MainBlue,
                             unfocusedBorderColor = BorderGray
@@ -146,9 +156,16 @@ fun LoginScreen(
                         label = { Text("Kata Sandi") },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(64.dp), // Perbesar tinggi
+                            .height(64.dp),
                         shape = RoundedCornerShape(12.dp),
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
                         trailingIcon = {
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
@@ -201,7 +218,7 @@ fun LoginScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp), // Tombol lebih tinggi
+                        .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(containerColor = MainBlue)

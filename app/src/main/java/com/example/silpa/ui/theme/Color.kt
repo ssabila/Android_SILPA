@@ -2,31 +2,26 @@ package com.example.silpa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Warna Utama Minimalis
-val MainBlue = Color(0xFF049BE0)       // Primary Action
-val AccentPurple = Color(0xFFEF93FF)   // Secondary / Accent
-val AccentPink = Color(0xFFE24B80)     // Special Highlight
+
+val MainBlue = Color(0xFF05A1EA)
+val AccentPurple = Color(0xFFEF93FF)
+val AccentPink = Color(0xFFE24B80)
+val AccentBlue = Color(0xFF9EDAEE)
 
 // Warna Status & Feedback
-val SuccessGreen = Color(0xFF4CAF50)   // Sukses / Approved
-val WarningYellow = Color(0xFFFFC107)  // Warning / Pending
-val AlertRed = Color(0xFFDE1010)       // Alert / Error / Rejected
+val SuccessGreen = Color(0xFF08C10D)
+val WarningYellow = Color(0xFFFFC107)
+val AlertRed = Color(0xFFE24237)
 
-// Tambahkan ini - Background tint untuk card
-val SuccessGreenTint = Color(0xFFE2F3E3)  // Light green untuk card approved
-val WarningYellowTint = Color(0xFFF8F0DB) // Light yellow untuk card revisi/pending
-val AlertRedTint =  Color(0xFFFAE7E7)          // Light red untuk card ditolak
+// Background tint untuk card
+val SuccessGreenTint = Color(0xFFE2F3E3)
+val WarningYellowTint = Color(0xFFF8F0DB)
+val AlertRedTint =  Color(0xFFFAE7E7)
 
 // Warna Netral
-val TextBlack = Color(0xFF212529)      // Teks Utama
-val TextGray = Color(0xFF868E96)       // Teks Sekunder
-val BackgroundLight = Color(0xFFF8F9FA) // Latar Belakang Aplikasi
-val SurfaceWhite = Color(0xFFFFFFFF)   // Kartu / Permukaan
-val BorderGray = Color(0xFFDEE2E6)     // Garis Batas Halus
+val TextBlack = Color(0xFF212529)
+val TextGray = Color(0xFF868E96)
+val BackgroundLight = Color(0xFFF8F9FA)
+val SurfaceWhite = Color(0xFFFFFFFF)
+val BorderGray = Color(0xFFDEE2E6)
 val BorderBlue = Color(0xFF3499EA)
-
-// Warna Kategori Izin (Pastel / Soft agar tidak terlalu mencolok)
-val IzinSakitColor = Color(0xFF5885AA)      // Biru Muda (Sakit)
-val IzinDispensasiColor = Color(0xFF6EA56F) // Oranye Muda (Dispensasi)
-val IzinPentingColor = Color(0xFFAC7875)    // Ungu Muda (Alasan Penting)
-val IzinLainnyaColor = Color(0xFFE8F5E9)    // Hijau Muda (Lainnya)

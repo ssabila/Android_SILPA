@@ -1,6 +1,7 @@
 package com.example.silpa.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -84,16 +85,13 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        // TopBar tetap ada atau bisa dihilangkan jika ingin desain full minimalis
-        // Di sini saya pakai SilpaTopAppBar tapi tanpa warna background yang mencolok jika mau
-        // Atau biarkan konsisten biru
         topBar = {
             SilpaTopAppBar(
                 title = "Profil Saya",
                 canNavigateBack = false
             )
         },
-        containerColor = BackgroundLight // Background abu-abu muda
+        containerColor = BackgroundLight
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -108,13 +106,13 @@ fun ProfileScreen(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- KARTU UTAMA PROFIL ---
+                //  KARTU UTAMA PROFIL
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, BorderBlue), // Border halus
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // Flat style
+                    border = BorderStroke(1.dp, BorderBlue),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -122,26 +120,26 @@ fun ProfileScreen(
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Header: Avatar (Clean, White Background)
+                        // Header: Avatar (
                         Surface(
                             modifier = Modifier.size(100.dp),
                             shape = CircleShape,
-                            color = BackgroundLight, // Lingkaran abu-abu sangat muda
-                            border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray)
+                            color = BackgroundLight,
+                            border = BorderStroke(1.dp, BorderGray)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    imageVector = Icons.Default.Person, // Atau AccountCircle
+                                    imageVector = Icons.Default.Person,
                                     contentDescription = null,
                                     modifier = Modifier.size(60.dp),
-                                    tint = TextGray // Warna ikon abu-abu, bukan biru (request: tidak perlu biru)
+                                    tint = AccentBlue
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Role Badge (Kecil, Minimalis)
+                        // Role Badge
                         Surface(
                             color = MainBlue.copy(alpha = 0.1f),
                             shape = RoundedCornerShape(50),
@@ -240,7 +238,7 @@ fun ProfileScreen(
                                 onClick = { showPasswordDialog = true },
                                 modifier = Modifier.fillMaxWidth().height(50.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray),
+                                border = BorderStroke(1.dp, BorderGray),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = TextBlack)
                             ) {
                                 Icon(Icons.Default.Lock, null, modifier = Modifier.size(18.dp))
@@ -264,8 +262,6 @@ fun ProfileScreen(
                         }
                     }
                 }
-
-                // Footer Version (Opsional)
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "Versi Aplikasi 1.0.0",
@@ -276,8 +272,6 @@ fun ProfileScreen(
         }
     }
 }
-
-// --- Helper Components Lokal ---
 
 @Composable
 fun InfoRowMinimal(label: String, value: String) {

@@ -4,7 +4,6 @@ import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -29,7 +28,6 @@ private val LightColorScheme = lightColorScheme(
     error = AlertRed
 )
 
-// Sementara kita fokus ke Light Theme untuk konsistensi minimalis
 private val DarkColorScheme = lightColorScheme(
     primary = MainBlue,
     background = Color(0xFF1A1B1E),
@@ -40,7 +38,7 @@ private val DarkColorScheme = lightColorScheme(
 @Composable
 fun SilpaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // Matikan dynamic color agar warna kita yang dipakai
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -48,7 +46,7 @@ fun SilpaTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme // Bisa ganti ke DarkColorScheme jika mau support dark mode nanti
+        darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 

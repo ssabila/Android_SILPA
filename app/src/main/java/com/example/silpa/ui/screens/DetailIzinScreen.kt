@@ -1,14 +1,12 @@
 package com.example.silpa.ui.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -25,7 +23,7 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.PerizinanDto
 import com.example.silpa.ui.components.*
 import com.example.silpa.ui.theme.*
-import kotlinx.coroutines.launch
+import com.example.silpa.utils.toReadableFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +50,7 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                 navigateUp = { navController.popBackStack() }
             )
         },
-        containerColor = BackgroundLight // Background abu-abu muda
+        containerColor = BackgroundLight
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -68,12 +66,12 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // --- KARTU UTAMA INFORMASI (Style AdminValidasiScreen) ---
+                //  KARTU UTAMA INFORMASI
                 Card(
                     colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MainBlue), // Border Biru
+                    border = BorderStroke(1.dp, MainBlue), // Border Biru
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(20.dp)) {
@@ -93,9 +91,9 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                         Text("Informasi Izin", fontWeight = FontWeight.SemiBold, color = TextBlack, fontSize = 16.sp)
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        DetailRow("Jenis Izin", izin.jenisIzin.replace("_", " "))
+                        DetailRow("Jenis Izin", izin.jenisIzin.toReadableFormat())
                         Spacer(modifier = Modifier.height(8.dp))
-                        DetailRow("Detail", izin.detailIzin.replace("_", " "))
+                        DetailRow("Detail", izin.detailIzin.toReadableFormat())
                         Spacer(modifier = Modifier.height(8.dp))
                         DetailRow("Tanggal Mulai", izin.tanggalMulai)
 
@@ -108,7 +106,7 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                             lineHeight = 20.sp
                         )
 
-                        // Footer: Catatan Admin (Jika ada)
+                        // Footer: Catatan Admin
                         if (!izin.catatanAdmin.isNullOrEmpty()) {
                             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = BorderGray)
 
@@ -123,7 +121,7 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                             Surface(
                                 color = BackgroundLight,
                                 shape = RoundedCornerShape(8.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray),
+                                border = BorderStroke(1.dp, BorderGray),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
@@ -137,13 +135,12 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                     }
                 }
 
-                // --- BAGIAN SESI (JIKA ADA) ---
                 if (!izin.daftarSesi.isNullOrEmpty()) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray),
+                        border = BorderStroke(1.dp, BorderGray),
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -169,7 +166,7 @@ fun DetailIzinScreen(navController: NavController, perizinanId: Long) {
                     }
                 }
 
-                // --- TOMBOL AKSI ---
+                //  TOMBOL AKSI
                 if (izin.status == "PERLU_REVISI") {
                     Button(
                         onClick = { navController.navigate("revisi_izin/${izin.id}") },

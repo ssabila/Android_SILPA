@@ -1,19 +1,27 @@
 package com.example.silpa.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +36,7 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.model.PerizinanDto
 import com.example.silpa.model.UpdateStatusDto
 import com.example.silpa.ui.theme.*
+import com.example.silpa.utils.toReadableFormat
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
@@ -161,9 +170,9 @@ fun AdminValidasiScreen(navController: NavController, perizinanId: Long) {
                         Text("Detail Pengajuan", fontWeight = FontWeight.SemiBold, color = TextBlack, fontSize = 16.sp)
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        DetailRow("Jenis Izin", detailIzin!!.jenisIzin)
+                        DetailRow("Jenis Izin", detailIzin!!.jenisIzin.toReadableFormat())
                         Spacer(modifier = Modifier.height(8.dp))
-                        DetailRow("Detail", detailIzin!!.detailIzin)
+                        DetailRow("Detail", detailIzin!!.detailIzin.toReadableFormat())
                         Spacer(modifier = Modifier.height(8.dp))
                         DetailRow("Tanggal Mulai", detailIzin!!.tanggalMulai)
 
@@ -175,6 +184,75 @@ fun AdminValidasiScreen(navController: NavController, perizinanId: Long) {
                             color = TextBlack,
                             lineHeight = 20.sp
                         )
+
+                        // Dokumen Pendukung
+                        if (!detailIzin!!.daftarBerkas.isNullOrEmpty()) {
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = BorderBlue)
+                            
+                            Text("Dokumen Pendukung", fontWeight = FontWeight.SemiBold, color = TextBlack, fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(detailIzin!!.daftarBerkas!!) { berkas ->
+                                    Card(
+                                        modifier = Modifier
+                                            .width(200.dp)
+                                            .clickable {
+                                                try {
+                                                    // Konstruksi URL lengkap
+                                                    val fileUrl = if (berkas.urlAksesFile.startsWith("http")) {
+                                                        berkas.urlAksesFile
+                                                    } else {
+                                                        // Hapus /api/ dan ganti dengan URL base tanpa /api/
+                                                        "http://192.168.0.24:8080${berkas.urlAksesFile}"
+                                                    }
+                                                    
+                                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                                        data = Uri.parse(fileUrl)
+                                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    }
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(context, "Tidak dapat membuka file: ${e.message}", Toast.LENGTH_SHORT).show()
+                                                }
+                                            },
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.InsertDriveFile,
+                                                contentDescription = null,
+                                                tint = MainBlue,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = berkas.namaFile,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = TextBlack,
+                                                    maxLines = 2
+                                                )
+                                            }
+                                            Icon(
+                                                Icons.Default.OpenInNew,
+                                                contentDescription = "Buka",
+                                                tint = MainBlue,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = BorderBlue)
 

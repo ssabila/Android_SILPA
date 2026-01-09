@@ -16,10 +16,7 @@ data class PerbaruiProfilDto(val namaLengkap: String, val email: String)
 data class GantiKataSandiDto(val sandiLama: String, val sandiBaru: String)
 
 //  Perizinan & Berkas
-data class BerkasDto(
-    val id: Long?,
-    val namaFile: String,
-    val urlAksesFile: String
+data class BerkasDto(val id: Long?, val namaFile: String, val urlAksesFile: String
 )
 
 data class DetailSesiIzinDto(
@@ -50,8 +47,8 @@ data class PerizinanDto(
 data class AjukanIzinDto(
     val jenisIzin: String,
     val detailIzin: String,
-    val tanggalMulai: String,  // WAJIB ADA untuk Backend
-    val durasiHari: Int,       // WAJIB ADA untuk Backend
+    val tanggalMulai: String,
+    val durasiHari: Int,
     val deskripsi: String,
     val daftarSesi: List<DetailSesiIzinDto>
 )
@@ -62,7 +59,7 @@ data class UpdateStatusDto(
     val catatanAdmin: String
 )
 
-//  Info Publik (Landing Page)
+//  Landing Page
 data class InfoDetailIzinDto(
     val namaEnum: String,
     val namaTampilan: String,

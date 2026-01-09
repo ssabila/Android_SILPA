@@ -3,12 +3,14 @@ package com.example.silpa.ui.screens
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,8 +25,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,6 +56,7 @@ fun RegisterScreen(navController: NavController) {
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     val (passwordStrength, strengthColor) = calculatePasswordStrength(password)
     val animatedProgress by animateFloatAsState(targetValue = passwordStrength, animationSpec = tween(500), label = "strength")
@@ -69,16 +74,16 @@ fun RegisterScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundLight)
-            .padding(16.dp), // Padding luar agar card tidak mepet layar
+            .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState()), // Agar bisa discroll di layar kecil
+                .verticalScroll(rememberScrollState()),
             colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
             shape = RoundedCornerShape(24.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MainBlue),
+            border = BorderStroke(1.dp, MainBlue),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Column(
@@ -118,6 +123,13 @@ fun RegisterScreen(navController: NavController) {
                         label = { Text("Nama Lengkap") },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) }
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MainBlue, unfocusedBorderColor = BorderGray)
                     )
                     OutlinedTextField(
@@ -125,7 +137,13 @@ fun RegisterScreen(navController: NavController) {
                         label = { Text("Email") },
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(12.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(androidx.compose.ui.focus.FocusDirection.Down) }
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MainBlue, unfocusedBorderColor = BorderGray)
                     )
                     OutlinedTextField(
@@ -134,6 +152,13 @@ fun RegisterScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth().height(64.dp),
                         shape = RoundedCornerShape(12.dp),
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
                         trailingIcon = { IconButton(onClick = { passwordVisible = !passwordVisible }) { Icon(if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff, null, tint = TextGray) } },
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MainBlue, unfocusedBorderColor = BorderGray)
                     )
@@ -193,7 +218,7 @@ fun RegisterScreen(navController: NavController) {
     }
 }
 
-// Helper (Sama seperti sebelumnya)
+// Helper
 fun calculatePasswordStrength(password: String): Pair<Float, Color> {
     if (password.isEmpty()) return 0f to Color.LightGray
     var score = 0

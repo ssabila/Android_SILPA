@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    // Jiak mengguhnakan emulator, ganti dengan 10.0.2.2 adalah IP localhost untuk emulator
+    // Jiak mengguhakan emulator, ganti dengan 10.0.2.2 adalah IP localhost untuk emulator
     // Jika menggunakan device fisik (HP), ganti dengan IP Laptop (misal: 192.168.1.x)
     private const val BASE_URL = "http://192.168.0.24:8080/api/"
 

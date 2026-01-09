@@ -1,14 +1,10 @@
 package com.example.silpa.ui.screens
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CalendarToday
@@ -35,7 +31,6 @@ import com.example.silpa.model.StatistikPerJenisDto
 import com.example.silpa.model.StatistikTrendDto
 import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
@@ -360,7 +355,6 @@ fun StatBulanItemDetailed(item: StatistikPerBulanDto, maxVal: Int, topType: Stri
     }
 }
 
-// --- UPDATE STATISTIK TREND ---
 @Composable
 fun StatistikTrendContent() {
     val context = LocalContext.current
@@ -388,7 +382,6 @@ fun StatistikTrendContent() {
             CircularProgressIndicator(color = MainBlue)
         }
     } else {
-        // --- KARTU UTAMA TREN (PUTIH + BORDER BIRU) ---
         Card(
             colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
             shape = RoundedCornerShape(12.dp),
@@ -409,7 +402,7 @@ fun StatistikTrendContent() {
                     Text("Analisis Tren Pengajuan", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextBlack)
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // --- KARTU INDIKATOR NAIK/TURUN ---
+                    //  KARTU INDIKATOR NAIK/TURUN
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = if(isNaik) AlertRed.copy(alpha = 0.1f) else SuccessGreen.copy(alpha = 0.1f)
@@ -421,7 +414,6 @@ fun StatistikTrendContent() {
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.fillMaxWidth(0.9f)
                     ) {
-                        // Gunakan Box untuk centering content
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -432,7 +424,6 @@ fun StatistikTrendContent() {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
-                                // Icon Besar
                                 Icon(
                                     imageVector = if(isNaik) Icons.Default.TrendingUp else Icons.Default.TrendingDown,
                                     contentDescription = null,

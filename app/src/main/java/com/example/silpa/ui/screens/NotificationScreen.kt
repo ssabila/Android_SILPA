@@ -1,25 +1,21 @@
 package com.example.silpa.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -56,7 +52,7 @@ fun NotificationScreen(navController: NavController) {
                 navigateUp = { navController.popBackStack() }
             )
         },
-        containerColor = BackgroundLight // Background abu-abu sangat muda agar kartu putih terlihat
+        containerColor = BackgroundLight
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -81,10 +77,9 @@ fun NotificationScreen(navController: NavController) {
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .padding(16.dp), // Padding luar list
-                verticalArrangement = Arrangement.spacedBy(12.dp) // Jarak antar kartu
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Urutkan dari yang terbaru (id descending atau waktu)
                 items(notifList.sortedByDescending { it.id }) { notif ->
                     NotifCardItem(notif)
                 }
@@ -95,7 +90,6 @@ fun NotificationScreen(navController: NavController) {
 
 @Composable
 fun NotifCardItem(notif: NotifikasiDto) {
-    // Tentukan gaya berdasarkan status baca
     val cardBgColor = if (notif.sudahDibaca) SurfaceWhite else MainBlue.copy(alpha = 0.05f)
     val iconTint = if (notif.sudahDibaca) TextGray else MainBlue
     val iconBg = if (notif.sudahDibaca) BorderGray.copy(alpha = 0.3f) else MainBlue.copy(alpha = 0.1f)
@@ -103,7 +97,7 @@ fun NotifCardItem(notif: NotifikasiDto) {
     Card(
         colors = CardDefaults.cardColors(containerColor = cardBgColor),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, if(notif.sudahDibaca) BorderGray else MainBlue.copy(alpha = 0.3f)),
+        border = BorderStroke(1.dp, if(notif.sudahDibaca) BorderGray else MainBlue.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp), // Flat
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -111,7 +105,7 @@ fun NotifCardItem(notif: NotifikasiDto) {
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.Top // Icon tetap di atas jika teks panjang
+            verticalAlignment = Alignment.Top
         ) {
             // Icon Notifikasi Bulat
             Surface(
@@ -137,10 +131,7 @@ fun NotifCardItem(notif: NotifikasiDto) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Judul Pesan (Jika ada field judul, kalau tidak ada pakai snippet pesan)
-                    // Asumsi: pesan cukup pendek untuk jadi judul, atau backend kirim "judul"
-                    // Di DTO: data class NotifikasiDto(id, pesan, waktu, sudahDibaca) -> tidak ada judul
-                    // Kita bisa hardcode judul atau pakai teks statis
+
                     Text(
                         text = "Info Perizinan",
                         fontWeight = FontWeight.Bold,

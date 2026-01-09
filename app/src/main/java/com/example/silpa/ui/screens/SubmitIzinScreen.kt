@@ -8,7 +8,13 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -32,10 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.silpa.data.RetrofitInstance
-import com.example.silpa.model.AjukanIzinDto
 import com.example.silpa.model.DetailSesiIzinDto
+import com.example.silpa.model.PerizinanDto
 import com.example.silpa.ui.theme.*
-import com.example.silpa.ui.theme.poppinsFont
 import com.example.silpa.ui.components.*
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -49,10 +54,20 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.rememberDatePickerState
-import java.util.Calendar
+
+// --- Helper Data Class untuk UI State ---
+data class SessionInputState(
+    val id: Int, // 1, 2, atau 3
+    var label: String,
+    var isSelected: Boolean = false,
+    var matkul: String = "",
+    var dosen: String = ""
+)
+
+data class DayInputState(
+    val date: LocalDate,
+    val sessions: List<SessionInputState>
+)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,23 +76,44 @@ fun SubmitIzinScreen(navController: NavController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // Form State
+    // --- State Data User ---
+    var mahasiswaId by remember { mutableStateOf<Long?>(null) }
+    var mahasiswaNama by remember { mutableStateOf<String?>(null) }
+
+    // Ambil profil user saat layar dibuka
+    LaunchedEffect(Unit) {
+        scope.launch {
+            try {
+                val api = RetrofitInstance.getApi(context)
+                val response = api.getProfil()
+                if (response.berhasil && response.data != null) {
+                    mahasiswaId = response.data.id
+                    mahasiswaNama = response.data.namaLengkap
+                }
+            } catch (e: Exception) {
+                // Handle silent error
+            }
+        }
+    }
+
+    // Form State Utama
     var jenisIzin by remember { mutableStateOf("SAKIT") }
     var detailIzin by remember { mutableStateOf("RAWAT_JALAN") }
-
-    // Input Data Sesi
-    var tanggalMulai by remember { mutableStateOf("2025-01-01") }
+    var tanggalMulai by remember { mutableStateOf(LocalDate.now().toString()) }
     var durasiHari by remember { mutableStateOf("1") }
-    var matkul by remember { mutableStateOf("-") }
-    var dosen by remember { mutableStateOf("-") }
+    var bobotKehadiran by remember { mutableStateOf("0") }
     var deskripsi by remember { mutableStateOf("") }
+
+    // State untuk Jadwal Dinamis
+    // List ini akan menampung data input per hari dan per sesi
+    var scheduleList = remember { mutableStateListOf<DayInputState>() }
 
     // Error State
     var tanggalError by remember { mutableStateOf(false) }
     var durasiError by remember { mutableStateOf(false) }
+    var bobotError by remember { mutableStateOf(false) }
     var deskripsiError by remember { mutableStateOf(false) }
-    var matkulError by remember { mutableStateOf(false) }
-    var dosenError by remember { mutableStateOf(false) }
+    var scheduleError by remember { mutableStateOf(false) }
 
     // File State
     val selectedUris = remember { mutableStateListOf<Uri>() }
@@ -89,6 +125,51 @@ fun SubmitIzinScreen(navController: NavController) {
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris ->
         selectedUris.addAll(uris)
+    }
+
+    // --- Logic: Generate Jadwal saat Tanggal/Durasi berubah ---
+    LaunchedEffect(tanggalMulai, durasiHari) {
+        try {
+            val start = LocalDate.parse(tanggalMulai)
+            val days = durasiHari.toIntOrNull() ?: 1
+
+            // Simpan data lama jika ada, untuk menghindari reset inputan user saat nambah hari
+            val oldList = scheduleList.toList()
+            scheduleList.clear()
+
+            for (i in 0 until days) {
+                val currentDate = start.plusDays(i.toLong())
+
+                // Cek apakah tanggal ini sudah ada inputannya sebelumnya (preserve input)
+                val existingDay = oldList.find { it.date == currentDate }
+
+                if (existingDay != null) {
+                    scheduleList.add(existingDay)
+                } else {
+                    // Buat baru default
+                    scheduleList.add(
+                        DayInputState(
+                            date = currentDate,
+                            sessions = listOf(
+                                SessionInputState(1, "Sesi 1 (07.30)"),
+                                SessionInputState(2, "Sesi 2 (09.20/10.20)"),
+                                SessionInputState(3, "Sesi 3 (13.30)")
+                            )
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            // Ignore parse error while typing
+        }
+    }
+
+    // Hitung otomatis bobot kehadiran berdasarkan jumlah sesi yang dicentang
+    LaunchedEffect(scheduleList.size, scheduleList.sumOf { it.sessions.count { s -> s.isSelected } }) {
+        val totalSesi = scheduleList.sumOf { it.sessions.count { s -> s.isSelected } }
+        if (bobotKehadiran == "0" || bobotKehadiran.isEmpty()) {
+            bobotKehadiran = (totalSesi * 2).toString()
+        }
     }
 
     Scaffold(
@@ -107,42 +188,15 @@ fun SubmitIzinScreen(navController: NavController) {
                 .background(SurfaceWhite)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(MainBlue, MainBlue.copy(alpha = 0.8f))
-                        )
-                    )
-                    .padding(vertical = 32.dp, horizontal = 24.dp)
-            ) {
-                Column {
-                    Text(
-                        "Ajukan Izin",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = SurfaceWhite
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "Isi form dengan data yang lengkap dan akurat",
-                        fontSize = 13.sp,
-                        color = SurfaceWhite.copy(alpha = 0.85f)
-                    )
-                }
-            }
 
             Column(
                 modifier = Modifier
                     .padding(horizontal = 24.dp, vertical = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // --- FORM INPUT ---
-                Text("Jenis Perizinan", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 16.sp)
+                // Jenis & Tanggal
+                Text("Informasi Dasar", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 16.sp)
 
-                // Dropdown Jenis Izin
                 DropdownInput(
                     value = jenisIzin,
                     options = listOf("SAKIT", "DISPENSASI_INSTITUSI", "IZIN_ALASAN_PENTING"),
@@ -157,338 +211,342 @@ fun SubmitIzinScreen(navController: NavController) {
                 LaunchedEffect(jenisIzin) {
                     if(detailIzin !in detailOptions) detailIzin = detailOptions.firstOrNull() ?: ""
                 }
-
                 DropdownInput(
                     value = detailIzin,
                     options = detailOptions,
                     onSelectionChanged = { detailIzin = it }
                 )
 
-                // --- INPUT SESI ---
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Jadwal Perkuliahan", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 16.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Tanggal Mulai
+                    OutlinedTextField(
+                        value = tanggalMulai,
+                        onValueChange = {},
+                        label = { Text("Mulai", fontSize = 12.sp, fontFamily = poppinsFont) },
+                        modifier = Modifier.weight(1f).clickable { showDatePicker = true },
+                        enabled = false, // Biar klik lewat trailing icon atau area
+                        readOnly = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = Color.Black,
+                            disabledBorderColor = BorderGray,
+                            disabledLabelColor = Color.Gray
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(Icons.Default.CalendarToday, null, tint = MainBlue)
+                            }
+                        }
+                    )
 
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        OutlinedTextField(
-                            value = tanggalMulai,
-                            onValueChange = {
-                                tanggalMulai = it
-                                tanggalError = false
-                            },
-                            label = { Text("Tanggal Mulai (YYYY-MM-DD)", fontSize = 14.sp, fontFamily = poppinsFont) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(70.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            leadingIcon = { Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(24.dp)) },
-                            isError = tanggalError,
-                            supportingText = { if (tanggalError) Text("Format tanggal salah!", color = AlertRed, fontSize = 11.sp, fontFamily = poppinsFont) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MainBlue,
-                                unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                                cursorColor = MainBlue
-                            ),
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontFamily = poppinsFont),
-                            singleLine = true,
-                            readOnly = true,
-                            trailingIcon = {
-                                IconButton(onClick = { showDatePicker = true }) {
-                                    Icon(Icons.Default.Edit, null, modifier = Modifier.size(20.dp), tint = MainBlue)
+                    // Durasi
+                    OutlinedTextField(
+                        value = durasiHari,
+                        onValueChange = {
+                            if(it.all { char -> char.isDigit() }) durasiHari = it
+                            durasiError = false
+                        },
+                        label = { Text("Durasi (Hari)", fontSize = 12.sp, fontFamily = poppinsFont) },
+                        modifier = Modifier.weight(0.7f),
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = durasiError
+                    )
+                }
+
+                Divider(color = BorderGray.copy(alpha = 0.5f))
+
+                // Detail Sesi (Dynamic List)
+                Text("Detail Perkuliahan", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 16.sp)
+                Text(
+                    "Centang sesi yang ingin diizinkan, lalu isi Mata Kuliah & Dosen.",
+                    fontSize = 12.sp, color = Color.Gray, lineHeight = 14.sp
+                )
+
+                if (scheduleError) {
+                    Text("Mohon lengkapi Matkul & Dosen pada sesi yang dipilih!", color = AlertRed, fontSize = 12.sp)
+                }
+
+                // Loop per Hari
+                scheduleList.forEachIndexed { dayIndex, dayData ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, BorderGray.copy(alpha = 0.5f)),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            // Header Tanggal
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.DateRange, null, tint = MainBlue, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = dayData.date.toString(),
+                                    fontWeight = FontWeight.Bold,
+                                    color = MainBlue,
+                                    fontSize = 14.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Divider(color = Color.LightGray.copy(alpha = 0.5f))
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Pilihan Sesi (Checkbox)
+                            Text("Pilih Sesi:", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                dayData.sessions.forEach { session ->
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Checkbox(
+                                            checked = session.isSelected,
+                                            onCheckedChange = { isChecked ->
+                                                // Update state khusus item ini
+                                                scheduleList[dayIndex] = dayData.copy(
+                                                    sessions = dayData.sessions.map {
+                                                        if (it.id == session.id) it.copy(isSelected = isChecked) else it
+                                                    }
+                                                )
+                                            },
+                                            colors = CheckboxDefaults.colors(checkedColor = MainBlue)
+                                        )
+                                        Text("Sesi ${session.id}", fontSize = 12.sp)
+                                    }
                                 }
                             }
-                        )
 
-                        OutlinedTextField(
-                            value = durasiHari,
-                            onValueChange = {
-                                if(it.all { char -> char.isDigit() }) durasiHari = it
-                                durasiError = false
-                            },
-                            label = { Text("Lama Izin (Hari)", fontSize = 14.sp, fontFamily = poppinsFont) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(70.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            isError = durasiError,
-                            supportingText = { if (durasiError) Text("Wajib diisi (>0)", color = AlertRed, fontSize = 11.sp, fontFamily = poppinsFont) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MainBlue,
-                                unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                                cursorColor = MainBlue
-                            ),
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontFamily = poppinsFont),
-                            singleLine = true
-                        )
+                            // Form Input (Muncul jika dicentang)
+                            dayData.sessions.forEach { session ->
+                                AnimatedVisibility(
+                                    visible = session.isSelected,
+                                    enter = expandVertically() + fadeIn(),
+                                    exit = shrinkVertically() + fadeOut()
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 8.dp)
+                                            .background(Color.White, RoundedCornerShape(8.dp))
+                                            .border(1.dp, BorderGray.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                            .padding(12.dp)
+                                    ) {
+                                        Text(
+                                            session.label,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 12.sp,
+                                            color = MainBlue
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
 
-                        OutlinedTextField(
-                            value = matkul,
-                            onValueChange = { matkul = it; matkulError = false },
-                            label = { Text("Mata Kuliah", fontSize = 14.sp, fontFamily = poppinsFont) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(70.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            isError = matkulError,
-                            supportingText = { if (matkulError) Text("Wajib diisi", color = AlertRed, fontSize = 11.sp, fontFamily = poppinsFont) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MainBlue,
-                                unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                                cursorColor = MainBlue
-                            ),
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontFamily = poppinsFont),
-                            singleLine = true
-                        )
+                                        // Matkul Input
+                                        OutlinedTextField(
+                                            value = session.matkul,
+                                            onValueChange = { newVal ->
+                                                scheduleList[dayIndex] = dayData.copy(
+                                                    sessions = dayData.sessions.map {
+                                                        if (it.id == session.id) it.copy(matkul = newVal) else it
+                                                    }
+                                                )
+                                            },
+                                            label = { Text("Mata Kuliah", fontSize = 11.sp) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
+                                            singleLine = true,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
 
-                        OutlinedTextField(
-                            value = dosen,
-                            onValueChange = { dosen = it; dosenError = false },
-                            label = { Text("Dosen Pengampu", fontSize = 14.sp, fontFamily = poppinsFont) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(70.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            isError = dosenError,
-                            supportingText = { if (dosenError) Text("Wajib diisi", color = AlertRed, fontSize = 11.sp, fontFamily = poppinsFont) },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MainBlue,
-                                unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                                cursorColor = MainBlue
-                            ),
-                            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontFamily = poppinsFont),
-                            singleLine = true
-                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        // Dosen Input
+                                        OutlinedTextField(
+                                            value = session.dosen,
+                                            onValueChange = { newVal ->
+                                                scheduleList[dayIndex] = dayData.copy(
+                                                    sessions = dayData.sessions.map {
+                                                        if (it.id == session.id) it.copy(dosen = newVal) else it
+                                                    }
+                                                )
+                                            },
+                                            label = { Text("Nama Dosen", fontSize = 11.sp) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
+                                            singleLine = true,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Alasan Pengajuan", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 16.sp)
+                // Deskripsi & File
+                OutlinedTextField(
+                    value = bobotKehadiran,
+                    onValueChange = { if(it.all { c -> c.isDigit() }) bobotKehadiran = it },
+                    label = { Text("Total Bobot (Jam/SKS)", fontSize = 14.sp) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = bobotError
+                )
 
                 OutlinedTextField(
                     value = deskripsi,
                     onValueChange = { deskripsi = it; deskripsiError = false },
-                    label = { Text("Deskripsikan alasan lengkap Anda", fontSize = 14.sp, fontFamily = poppinsFont) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
+                    label = { Text("Alasan Lengkap", fontSize = 14.sp) },
+                    modifier = Modifier.fillMaxWidth().height(120.dp),
                     shape = RoundedCornerShape(12.dp),
-                    minLines = 4,
-                    isError = deskripsiError,
-                    supportingText = { if (deskripsiError) Text("Wajib diisi", color = AlertRed, fontSize = 11.sp, fontFamily = poppinsFont) },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MainBlue,
-                        unfocusedBorderColor = BorderGray.copy(alpha = 0.3f),
-                        cursorColor = MainBlue
-                    ),
-                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontFamily = poppinsFont)
+                    minLines = 3,
+                    isError = deskripsiError
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Dokumen Pendukung", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 16.sp)
 
                 Button(
                     onClick = { fileLauncher.launch("*/*") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MainBlue)
                 ) {
                     Icon(Icons.Default.AttachFile, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Pilih File", fontWeight = FontWeight.Bold)
+                    Text("Pilih Lampiran", fontWeight = FontWeight.Bold)
                 }
 
                 if (selectedUris.isNotEmpty()) {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                items(selectedUris) { uri ->
-                                    InputChip(
-                                        selected = true,
-                                        onClick = { selectedUris.remove(uri) },
-                                        label = { Text(getFileName(context, uri).take(15), fontSize = 11.sp) },
-                                        trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) },
-                                        colors = InputChipDefaults.inputChipColors(
-                                            containerColor = MainBlue.copy(alpha = 0.1f),
-                                            labelColor = MainBlue
-                                        )
-                                    )
-                                }
-                            }
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(selectedUris) { uri ->
+                            InputChip(
+                                selected = true,
+                                onClick = { selectedUris.remove(uri) },
+                                label = { Text(getFileName(context, uri).take(15), fontSize = 11.sp) },
+                                trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) }
+                            )
                         }
-                    }
-                } else {
-                    Surface(
-                        color = AlertRed.copy(alpha = 0.08f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Minimal 1 dokumen harus diunggah", fontSize = 12.sp, color = AlertRed, fontWeight = FontWeight.Medium, modifier = Modifier.padding(12.dp))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // --- SUBMIT BUTTON ---
+                //  SUBMIT
                 Button(
                     onClick = {
-                        // --- VALIDASI INPUT ---
+                        // 1. Validasi Dasar
                         var isValid = true
-
-                        // Cek Tanggal
-                        try {
-                            LocalDate.parse(tanggalMulai)
-                        } catch (e: DateTimeParseException) {
-                            tanggalError = true
-                            isValid = false
-                        }
-
-                        if (durasiHari.toIntOrNull() == null || durasiHari.toInt() <= 0) {
-                            durasiError = true
-                            isValid = false
-                        }
-                        if (matkul.isBlank()) { matkulError = true; isValid = false }
-                        if (dosen.isBlank()) { dosenError = true; isValid = false }
+                        if (durasiHari.toIntOrNull() == null || durasiHari.toInt() <= 0) { durasiError = true; isValid = false }
                         if (deskripsi.isBlank()) { deskripsiError = true; isValid = false }
-
+                        if (bobotKehadiran.isBlank()) { bobotError = true; isValid = false }
                         if (selectedUris.isEmpty()) {
-                            Toast.makeText(context, "Upload minimal 1 dokumen", Toast.LENGTH_SHORT).show()
-                            return@Button
+                            Toast.makeText(context, "Upload minimal 1 dokumen", Toast.LENGTH_SHORT).show(); return@Button
                         }
 
-                        if (!isValid) {
-                            Toast.makeText(context, "Mohon lengkapi data yang salah!", Toast.LENGTH_SHORT).show()
-                            return@Button
+                        //Validasi Jadwal
+                        val anyEmptyField = scheduleList.any { day ->
+                            day.sessions.any { it.isSelected && (it.matkul.isBlank() || it.dosen.isBlank()) }
                         }
+                        val anySessionSelected = scheduleList.any { day -> day.sessions.any { it.isSelected } }
+
+                        if (anyEmptyField) {
+                            scheduleError = true
+                            Toast.makeText(context, "Lengkapi Nama Matkul & Dosen pada sesi yang dicentang!", Toast.LENGTH_LONG).show()
+                            isValid = false
+                        } else if (!anySessionSelected) {
+                            Toast.makeText(context, "Pilih minimal satu sesi!", Toast.LENGTH_SHORT).show()
+                            isValid = false
+                        }
+
+                        if (!isValid) return@Button
 
                         scope.launch {
                             isSubmitting = true
                             try {
-                                // --- 1. GENERATE LIST SESI ---
-                                val durasi = durasiHari.toInt()
-                                val start = LocalDate.parse(tanggalMulai)
+                                //  CONVERT UI STATE TO DTO
+                                val finalStart = LocalDate.parse(tanggalMulai)
+                                val finalEnd = finalStart.plusDays((durasiHari.toInt() - 1).toLong()).toString()
 
-                                val listSesi = mutableListOf<DetailSesiIzinDto>()
-                                for(i in 0 until durasi) {
-                                    val tgl = start.plusDays(i.toLong()).toString()
-                                    listSesi.add(DetailSesiIzinDto(
-                                        tanggal = tgl,
-                                        namaMataKuliah = matkul,
-                                        namaDosen = dosen,
-                                        sesi1 = true, sesi2 = true, sesi3 = true
-                                    ))
+                                val listSesiDto = mutableListOf<DetailSesiIzinDto>()
+
+                                scheduleList.forEach { day ->
+                                    day.sessions.forEach { session ->
+                                        if (session.isSelected) {
+                                            listSesiDto.add(
+                                                DetailSesiIzinDto(
+                                                    tanggal = day.date.toString(),
+                                                    namaMataKuliah = session.matkul,
+                                                    namaDosen = session.dosen,
+                                                    sesi1 = (session.id == 1),
+                                                    sesi2 = (session.id == 2),
+                                                    sesi3 = (session.id == 3)
+                                                )
+                                            )
+                                        }
+                                    }
                                 }
 
-                                // --- 2. Buat DTO ---
-                                val izinData = AjukanIzinDto(
+                                val izinData = PerizinanDto(
+                                    id = 0,
+                                    mahasiswaId = mahasiswaId,
+                                    mahasiswaNama = mahasiswaNama,
                                     jenisIzin = jenisIzin,
                                     detailIzin = detailIzin,
-                                    tanggalMulai = tanggalMulai, // PENTING: Backend validasi @NotNull di sini
-                                    durasiHari = durasi,         // PENTING: Backend validasi @Min(1) di sini
+                                    tanggalMulai = tanggalMulai,
+                                    tanggalSelesai = finalEnd,
                                     deskripsi = deskripsi,
-                                    daftarSesi = listSesi
+                                    bobotKehadiran = bobotKehadiran.toIntOrNull() ?: 0,
+                                    status = "PENDING",
+                                    catatanAdmin = null,
+                                    daftarBerkas = emptyList(),
+                                    daftarSesi = listSesiDto
                                 )
 
-                                // --- 3. Convert ke Multipart ---
                                 val gson = Gson()
                                 val jsonString = gson.toJson(izinData)
                                 val izinPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
                                 val fileParts = prepareFileParts(context, selectedUris)
 
-                                // --- 4. Kirim ke API ---
                                 val api = RetrofitInstance.getApi(context)
                                 api.ajukanIzin(izinPart, fileParts)
 
                                 Toast.makeText(context, "Berhasil diajukan!", Toast.LENGTH_LONG).show()
                                 navController.popBackStack()
 
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            val msg = when(e) {
-                                is HttpException -> {
-                                    when(e.code()) {
-                                        400 -> "Data tidak lengkap atau format salah."
-                                        413 -> "Ukuran file terlalu besar."
-                                        500 -> "Server bermasalah."
-                                        else -> "Gagal mengirim (Error ${e.code()})"
-                                    }
-                                }
-                                is IOException -> "Gagal terhubung. Periksa internet Anda."
-                                else -> "Error: ${e.localizedMessage}"
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                Toast.makeText(context, "Gagal: ${e.message}", Toast.LENGTH_LONG).show()
+                            } finally {
+                                isSubmitting = false
                             }
-                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                        } finally {
-                            isSubmitting = false
                         }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
-                enabled = !isSubmitting
-            ) {
-                if(isSubmitting) {
-                    CircularProgressIndicator(color = SurfaceWhite, modifier = Modifier.size(20.dp))
-                } else {
-                    Text("AJUKAN IZIN", fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = poppinsFont)
+                    },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
+                    enabled = !isSubmitting
+                ) {
+                    if (isSubmitting) CircularProgressIndicator(color = Color.White) else Text("AJUKAN IZIN", fontWeight = FontWeight.Bold)
                 }
-            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 
-    // Date Picker Dialog
+    // Date Picker
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = try {
-                LocalDate.parse(tanggalMulai).toEpochDay() * 86400 * 1000
-            } catch (e: Exception) {
-                System.currentTimeMillis()
-            }
-        )
+        val datePickerState = rememberDatePickerState()
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            val selectedDate = java.time.Instant.ofEpochMilli(millis)
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .toLocalDate()
-                            tanggalMulai = selectedDate.toString()
-                        }
-                        showDatePicker = false
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val selectedDate = java.time.Instant.ofEpochMilli(millis)
+                            .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                        tanggalMulai = selectedDate.toString()
                     }
-                ) {
-                    Text("OK", fontFamily = poppinsFont)
-                }
+                    showDatePicker = false
+                }) { Text("OK", fontFamily = poppinsFont) }
             },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDatePicker = false }
-                ) {
-                    Text("Cancel", fontFamily = poppinsFont)
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel", fontFamily = poppinsFont) } }
+        ) { DatePicker(state = datePickerState) }
     }
 }
 
@@ -515,9 +573,6 @@ fun prepareFileParts(context: Context, uris: List<Uri>): List<MultipartBody.Part
         }
     }
 }
-
-// Helper function to handle date picker dialog display in the composable
-// This will be called from the SubmitIzinScreen composition
 
 fun getFileName(context: Context, uri: Uri): String {
     var result: String? = null

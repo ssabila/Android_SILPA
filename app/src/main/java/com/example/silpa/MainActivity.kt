@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -32,7 +33,9 @@ import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.data.SessionManager
 import com.example.silpa.ui.screens.*
 import com.example.silpa.ui.theme.SilpaTheme
+import com.example.silpa.ui.theme.AccentBlue
 import com.example.silpa.ui.theme.BackgroundLight
+import com.example.silpa.ui.theme.BorderBlue
 import com.example.silpa.ui.theme.SurfaceWhite
 import com.example.silpa.ui.theme.MainBlue
 import com.example.silpa.ui.theme.BorderGray
@@ -81,31 +84,48 @@ fun SilpaApp() {
     val currentRoute = navBackStackEntry?.destination?.route
     val isAdmin = userRole == "ADMIN"
 
-    val showBottomBar = isLoggedIn.value && currentRoute in listOf(
+    // Daftar route yang memerlukan autentikasi (protected routes)
+    val protectedRoutes = listOf(
+        "dashboard", "history", "notifications", "profile", "submit_izin", "detail_izin",
+        "admin_dashboard", "admin_history", "admin_notifications", "admin_profile",
+        "admin_validasi_list", "admin_validasi", "admin_mahasiswa", "admin_mahasiswa_detail", "admin_statistik"
+    )
+
+    // Redirect ke login jika user belum login dan mencoba akses protected route
+    LaunchedEffect(currentRoute, isLoggedIn.value) {
+        val routeBase = currentRoute?.split("/")?.firstOrNull() ?: ""
+        if (!isLoggedIn.value && routeBase in protectedRoutes) {
+            navController.navigate("login") {
+                popUpTo("landing") { inclusive = false }
+            }
+        }
+    }
+
+    // Navbar muncul di landing dan route utama lainnya
+    val showBottomBar = currentRoute in listOf(
         "dashboard", "history", "landing", "notifications", "profile",
         "admin_dashboard", "admin_history", "admin_notifications", "admin_profile"
     )
 
     Scaffold(
-        containerColor = BackgroundLight, // Menggunakan BackgroundLight dari Color.kt
+        containerColor = BackgroundLight,
         bottomBar = {
             if (showBottomBar) {
-                // --- NAV BAR BULAT TERSUAI ---
                 Surface(
-                    color = SurfaceWhite, // Menggunakan SurfaceWhite
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), // Melengkung di atas
-                    shadowElevation = 16.dp, // Bayangan agar kelihatan terapung
+                    color = SurfaceWhite,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    shadowElevation = 16.dp,
                     modifier = Modifier
-                        .padding(bottom = 0.dp) // Pastikan rapat di bawah (kerana edge-to-edge)
+                        .padding(bottom = 0.dp)
                         .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
                 ) {
                     NavigationBar(
-                        containerColor = Color.Transparent, // Telus agar ikut warna Surface
+                        containerColor = Color.Transparent,
                         tonalElevation = 0.dp,
-                        modifier = Modifier.padding(top = 4.dp) // Sedikit padding atas dalaman
+                        modifier = Modifier.padding(top = 4.dp)
                     ) {
                         if (isAdmin) {
-                            // --- MENU ADMIN ---
+                            //  MENU ADMIN
                             NavigationBarItem(
                                 icon = { Icon(Icons.Outlined.Home, "Home") },
                                 label = { Text("Home") },
@@ -135,7 +155,7 @@ fun SilpaApp() {
                                 colors = NavigationBarItemDefaults.colors(selectedIconColor = MainBlue, indicatorColor = BorderGray.copy(alpha = 0.3f))
                             )
                         } else {
-                            // --- MENU MAHASISWA ---
+                            //  MENU MAHASISWA
                             NavigationBarItem(
                                 icon = { Icon(Icons.Outlined.Home, "Beranda") },
                                 label = { Text("Beranda") },

@@ -1,7 +1,8 @@
 package com.example.silpa.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,31 +15,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.silpa.R
 import com.example.silpa.data.RetrofitInstance
 import com.example.silpa.data.SessionManager
 import com.example.silpa.model.AdminDashboardDto
 import com.example.silpa.ui.theme.*
 import com.example.silpa.ui.components.*
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(navController: NavController, sessionManager: SessionManager) {
     val context = LocalContext.current
 
-    // State data dashboard dari backend
     var stats by remember { mutableStateOf<AdminDashboardDto?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         try {
-            // Backend mengembalikan AdminDashboardDto langsung
             val response = RetrofitInstance.getApi(context).getAdminDashboard()
             stats = response
         } catch (e: Exception) {
@@ -56,25 +56,22 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                 CircularProgressIndicator(color = MainBlue)
             }
         } else {
-            // Gunakan Box untuk menumpuk Header di belakang konten
             Box(modifier = Modifier.fillMaxSize()) {
-                // --- HEADER GRADASI SEPERTI LANDING PAGE ---
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp) // Tinggi header
+                        .height(280.dp)
                         .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     MainBlue,
-                                    Color(0xFF64B5F6), // Biru lebih muda
-                                    Color.White        // Putih di bawah
+                                    Color(0xFF64B5F6),
+                                    Color.White
                                 )
                             )
                         )
                 ) {
-                    // Pattern Lingkaran Dekoratif (Optional, agar sama persis dengan landing)
                     Box(
                         modifier = Modifier
                             .size(200.dp)
@@ -91,13 +88,31 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                             .background(Color.White.copy(alpha = 0.1f))
                     )
 
-                    // Konten Header (Judul Panel Admin)
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(bottom = 32.dp), // Angkat sedikit agar tidak tertutup card
+                            .padding(bottom = 32.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White,
+                            modifier = Modifier.size(80.dp),
+                            shadowElevation = 8.dp,
+                            border = BorderStroke(3.dp, Color.White)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.silpafix),
+                                contentDescription = "Logo SILPA",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
                         Text(
                             text = "Panel Admin",
                             fontSize = 28.sp,
@@ -113,11 +128,10 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                     }
                 }
 
-                // Tombol Logout di pojok kanan atas
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 48.dp, end = 16.dp), // Sesuaikan padding status bar
+                        .padding(top = 48.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     IconButton(onClick = {
@@ -128,16 +142,15 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                     }
                 }
 
-                // Konten Utama (di depan header)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 220.dp) // Turunkan konten agar mulai dari bawah judul header
+                        .padding(top = 220.dp)
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = padding.calculateBottomPadding()), // Padding bawah navbar
+                        .padding(bottom = padding.calculateBottomPadding()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // --- RINGKASAN DATA ---
+                    //  RINGKASAN DATA
                     Card(
                         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
                         shape = RoundedCornerShape(16.dp),
@@ -180,7 +193,7 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                         }
                     }
 
-                    // --- MENU UTAMA GRID ---
+                    //  MENU UTAMA GRID
                     Text("Menu Utama", fontWeight = FontWeight.Bold, color = TextBlack, fontSize = 18.sp)
 
                     val menuItems = listOf(
@@ -190,8 +203,6 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                         Triple("Notifikasi", Icons.Default.Notifications, "admin_notifications"),
                         Triple("Profil Saya", Icons.Default.Person, "admin_profile"),
                     )
-
-                    // Grid Menu (2 Kolom) - Menggunakan Column manual
                     val rows = menuItems.chunked(2)
                     rows.forEach { rowItems ->
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -200,7 +211,6 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
                                     navController.navigate(item.third)
                                 }
                             }
-                            // Spacer jika item ganjil agar rapi
                             if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
                         }
                     }
@@ -209,5 +219,3 @@ fun AdminDashboardScreen(navController: NavController, sessionManager: SessionMa
         }
     }
 }
-
-// --- Component Helper ---
