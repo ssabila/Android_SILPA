@@ -50,6 +50,8 @@ data class PerizinanDto(
 data class AjukanIzinDto(
     val jenisIzin: String,
     val detailIzin: String,
+    val tanggalMulai: String,  // WAJIB ADA untuk Backend
+    val durasiHari: Int,       // WAJIB ADA untuk Backend
     val deskripsi: String,
     val daftarSesi: List<DetailSesiIzinDto>
 )

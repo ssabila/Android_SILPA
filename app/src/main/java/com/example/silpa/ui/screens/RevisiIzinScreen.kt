@@ -218,7 +218,14 @@ fun RevisiIzinScreen(navController: NavController, perizinanId: Long) {
                                     )
                                 }
 
-                                val izinData = AjukanIzinDto(jenisIzin, detailIzin, deskripsi, listSesi)
+                                val izinData = AjukanIzinDto(
+                                    jenisIzin = jenisIzin,
+                                    detailIzin = detailIzin,
+                                    tanggalMulai = tanggalMulai, // <--- Add this
+                                    durasiHari = durasi,         // <--- Add this
+                                    deskripsi = deskripsi,
+                                    daftarSesi = listSesi
+                                )
                                 val gson = Gson()
                                 val jsonString = gson.toJson(izinData)
                                 val izinPart = jsonString.toRequestBody("application/json".toMediaTypeOrNull())

@@ -395,8 +395,10 @@ fun SubmitIzinScreen(navController: NavController) {
                                 val izinData = AjukanIzinDto(
                                     jenisIzin = jenisIzin,
                                     detailIzin = detailIzin,
+                                    tanggalMulai = tanggalMulai, // PENTING: Backend validasi @NotNull di sini
+                                    durasiHari = durasi,         // PENTING: Backend validasi @Min(1) di sini
                                     deskripsi = deskripsi,
-                                    daftarSesi = listSesi // List Sesi Lengkap
+                                    daftarSesi = listSesi
                                 )
 
                                 // --- 3. Convert ke Multipart ---
