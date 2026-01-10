@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle.Companion.Italic
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -162,7 +163,7 @@ fun LandingScreen(navController: NavController) {
                         Text(
                             "Sistem Informasi  Layanan Perizinan Akademik Terpadu\nPoliteknik Statistika STIS",
                             fontSize = 14.sp,
-                            color = TextGray,
+                            color = Color(0xFF072A5E),
                             textAlign = TextAlign.Center,
                             lineHeight = 20.sp
                         )
@@ -222,7 +223,7 @@ fun LandingScreen(navController: NavController) {
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = BackgroundLight),
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                border = BorderStroke(1.dp, BorderGray)
+                                border = BorderStroke(1.dp, BorderBlue)
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -236,7 +237,7 @@ fun LandingScreen(navController: NavController) {
 
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text("Syarat Dokumen:", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MainBlue)
-                                    Text(detail.syarat, fontSize = 12.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = TextBlack)
+                                    Text(detail.syarat, fontSize = 12.sp, fontStyle = Italic, color = TextBlack)
                                 }
                             }
                         }
@@ -253,7 +254,7 @@ fun InfoIzinCard(izin: InfoJenisIzinDto, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, BorderGray),
+        border = BorderStroke(1.dp, BorderBlue),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)

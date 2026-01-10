@@ -32,6 +32,8 @@ import com.example.silpa.model.PerbaruiProfilDto
 import com.example.silpa.ui.components.SilpaTopAppBar
 import com.example.silpa.ui.theme.*
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,10 +76,24 @@ fun ProfileScreen(
                     try {
                         val api = RetrofitInstance.getApi(context)
                         val res = api.gantiKataSandi(GantiKataSandiDto(lama, baru))
-                        Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
-                        if (res.berhasil) showPasswordDialog = false
+                        
+                        if (res.berhasil) {
+                            Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
+                            showPasswordDialog = false
+                        } else {
+                            Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: HttpException) {
+                        val errorMessage = when (e.code()) {
+                            403 -> "Kata sandi lama tidak sesuai"
+                            401 -> "Sesi Anda telah berakhir. Silakan login kembali"
+                            else -> "Gagal ganti password (Error ${e.code()})"
+                        }
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                    } catch (e: IOException) {
+                        Toast.makeText(context, "Masalah koneksi internet", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Gagal ganti password: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Terjadi kesalahan: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
