@@ -20,7 +20,7 @@ interface SilpaApiService {
     @PUT("pengguna/saya")
     suspend fun updateProfil(@Body request: PerbaruiProfilDto): ApiResponse<ProfilPenggunaDto>
 
-    @POST("pengguna/ganti-sandi")
+    @PUT("pengguna/saya/kata-sandi")
     suspend fun gantiKataSandi(@Body request: GantiKataSandiDto): ApiResponse<String>
 
     // Dashboard

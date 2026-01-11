@@ -13,7 +13,7 @@ data class RegisterDto(val namaLengkap: String, val email: String, val kataSandi
 data class JwtAuthResponseDto(val accessToken: String, val tokenType: String)
 data class ProfilPenggunaDto(val id: Long, val namaLengkap: String, val email: String, val peran: String)
 data class PerbaruiProfilDto(val namaLengkap: String, val email: String)
-data class GantiKataSandiDto(val sandiLama: String, val sandiBaru: String)
+data class GantiKataSandiDto(val kataSandiLama: String, val kataSandiBaru: String, val konfirmasiKataSandi: String)
 
 //  Perizinan & Berkas
 data class BerkasDto(val id: Long?, val namaFile: String, val urlAksesFile: String

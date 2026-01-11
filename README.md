@@ -1,52 +1,345 @@
-# silpa_ui
+# SILPA - Sistem Informasi Layanan Perizinan Akademik
 
+![Android](https://img.shields.io/badge/Platform-Android-green.svg)
+![Kotlin](https://img.shields.io/badge/Language-Kotlin-blue.svg)
+![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-brightgreen.svg)
 
+Aplikasi mobile Android untuk manajemen perizinan akademik mahasiswa yang terintegrasi dengan backend Spring Boot.
 
-## Getting started
+## 📱 Tentang Aplikasi
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+SILPA adalah aplikasi manajemen perizinan akademik yang memudahkan mahasiswa untuk mengajukan berbagai jenis izin (sakit, acara keluarga, dll) dan memungkinkan admin/dosen untuk memvalidasi pengajuan tersebut secara digital. Aplikasi ini dibangun dengan teknologi modern menggunakan Jetpack Compose untuk UI yang responsif dan intuitif.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## ✨ Fitur Utama
 
-## Add your files
+### 👨‍🎓 Fitur Mahasiswa
+- **Autentikasi**
+  - Login dengan email dan password
+  - Registrasi akun baru
+  - Logout
+  
+- **Dashboard**
+  - Ringkasan izin (disetujui, ditolak, pending)
+  - Statistik kehadiran
+  - Notifikasi status izin
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+- **Manajemen Perizinan**
+  - Ajukan izin baru (Sakit, Acara Keluarga, Keperluan Pribadi, dll)
+  - Pilih jenis detail izin (Rawat Jalan, Rawat Inap, dll)
+  - Upload lampiran dokumen pendukung (foto, PDF)
+  - Lihat riwayat izin lengkap
+  - Revisi izin yang perlu diperbaiki
+  - Detail izin dengan status real-time
+
+- **Profil**
+  - Lihat dan edit profil
+  - Ganti kata sandi (dengan konfirmasi)
+  - Informasi akun
+
+### 👨‍💼 Fitur Admin/Dosen
+- **Dashboard Admin**
+  - Statistik perizinan keseluruhan
+  - Izin pending yang perlu divalidasi
+  - Grafik dan analitik
+
+- **Validasi Perizinan**
+  - Lihat detail pengajuan izin
+  - Setujui atau tolak izin
+  - Minta revisi dengan catatan
+  - Tambahkan catatan admin
+
+- **Manajemen Mahasiswa**
+  - Lihat daftar seluruh mahasiswa
+  - Detail profil mahasiswa
+  - Riwayat izin per mahasiswa
+
+- **Statistik & Laporan**
+  - Statistik per jenis izin
+  - Statistik per bulan
+  - Trend perizinan
+  - Filter berdasarkan status, jenis, nama mahasiswa, bulan, dan tahun
+
+## 🏗️ Struktur Proyek
 
 ```
-cd existing_repo
-git remote add origin https://git.stis.ac.id/222313363/silpa_ui.git
-git branch -M main
-git push -uf origin main
+SILPA/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/example/silpa/
+│   │   │   │   ├── data/              # Layer Data & Network
+│   │   │   │   │   ├── RetrofitInstance.kt    # Konfigurasi Retrofit
+│   │   │   │   │   ├── SessionManager.kt      # Manajemen token & session
+│   │   │   │   │   └── SilpaApiService.kt     # API endpoints
+│   │   │   │   │
+│   │   │   │   ├── model/             # Data Models
+│   │   │   │   │   └── SilpaModels.kt         # DTOs dan models
+│   │   │   │   │
+│   │   │   │   ├── ui/                # UI Layer
+│   │   │   │   │   ├── components/    # Komponen reusable
+│   │   │   │   │   │   └── components.kt
+│   │   │   │   │   │
+│   │   │   │   │   ├── screens/       # Layar aplikasi
+│   │   │   │   │   │   ├── AdminDashboardScreen.kt
+│   │   │   │   │   │   ├── AdminMahasiswaScreen.kt
+│   │   │   │   │   │   ├── AdminStatistikScreen.kt
+│   │   │   │   │   │   ├── AdminValidasiScreen.kt
+│   │   │   │   │   │   ├── DetailIzinScreen.kt
+│   │   │   │   │   │   ├── LandingScreen.kt
+│   │   │   │   │   │   ├── LoginScreen.kt
+│   │   │   │   │   │   ├── MahasiswaDashboardScreen.kt
+│   │   │   │   │   │   ├── ProfileScreen.kt
+│   │   │   │   │   │   ├── RegisterScreen.kt
+│   │   │   │   │   │   ├── RevisiIzinScreen.kt
+│   │   │   │   │   │   ├── RiwayatIzinScreen.kt
+│   │   │   │   │   │   └── SubmitIzinScreen.kt
+│   │   │   │   │   │
+│   │   │   │   │   └── theme/         # Design System
+│   │   │   │   │       ├── Color.kt
+│   │   │   │   │       ├── Theme.kt
+│   │   │   │   │       └── Type.kt
+│   │   │   │   │
+│   │   │   │   ├── utils/             # Utilities
+│   │   │   │   │   └── DateUtils.kt
+│   │   │   │   │
+│   │   │   │   └── MainActivity.kt    # Entry point
+│   │   │   │
+│   │   │   ├── res/                   # Resources
+│   │   │   │   ├── drawable/          # Icons & images
+│   │   │   │   ├── values/            # Strings, colors, themes
+│   │   │   │   └── ...
+│   │   │   │
+│   │   │   └── AndroidManifest.xml
+│   │   │
+│   │   └── androidTest/               # UI Tests
+│   │
+│   └── build.gradle.kts               # Dependencies
+│
+├── gradle/                            # Gradle configuration
+├── build.gradle.kts                   # Project build config
+├── settings.gradle.kts                # Project settings
+└── README.md                          # Dokumentasi ini
 ```
 
-## Integrate with your tools
+## 🛠️ Tech Stack
 
-- [ ] [Set up project integrations](https://git.stis.ac.id/222313363/silpa_ui/-/settings/integrations)
+### Frontend (Android)
+- **Kotlin** - Bahasa pemrograman utama
+- **Jetpack Compose** - Modern declarative UI toolkit
+- **Material Design 3** - Design system
+- **Retrofit** - HTTP client untuk API calls
+- **OkHttp** - Interceptor untuk logging dan authentication
+- **Gson** - JSON serialization/deserialization
+- **Coil** - Image loading library
+- **Coroutines** - Asynchronous programming
+- **ViewModel & LiveData** - Architecture components
+- **Navigation Compose** - Navigation framework
 
-## Collaborate with your team
+### Backend (Spring Boot)
+- **Spring Boot 3.x** - Backend framework
+- **Spring Security** - Authentication & authorization
+- **JWT** - Token-based authentication
+- **Spring Data JPA** - Database access
+- **PostgreSQL/MySQL** - Database
+- **Hibernate** - ORM
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+## 📋 Prerequisites
 
-## Test and Deploy
+Sebelum instalasi, pastikan Anda memiliki:
 
-Use the built-in continuous integration in GitLab.
+- **Android Studio** Hedgehog (2023.1.1) atau lebih baru
+- **JDK 17** atau lebih tinggi
+- **Android SDK** API Level 24+ (Android 7.0+)
+- **Gradle** 8.0+
+- **Device/Emulator** dengan Android 7.0 (API 24) atau lebih tinggi
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## 🚀 Cara Instalasi
 
-***
+### 1. Clone Repository
+```bash
+git clone https://git.stis.ac.id/222313363/silpa_ui.git
+cd silpa_ui
+```
 
-# Editing this README
+### 2. Konfigurasi Backend URL
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Edit file `RetrofitInstance.kt` untuk mengatur URL backend:
+
+```kotlin
+// Path: app/src/main/java/com/example/silpa/data/RetrofitInstance.kt
+
+private const val BASE_URL = "http://192.168.0.24:8080/api/"
+```
+
+**Catatan penting:**
+- Untuk **Emulator Android**: Gunakan `http://10.0.2.2:8080/api/`
+- Untuk **Device Fisik**: Gunakan IP laptop Anda (contoh: `http://192.168.x.x:8080/api/`)
+- Untuk **Production**: Gunakan URL domain server (contoh: `https://api.silpa.com/api/`)
+
+### 3. Sinkronisasi Dependencies
+
+Buka proyek di Android Studio, kemudian:
+1. Klik **File** → **Sync Project with Gradle Files**
+2. Tunggu hingga proses sinkronisasi selesai
+3. Pastikan tidak ada error di Gradle
+
+### 4. Setup Backend Server
+
+Pastikan backend Spring Boot sudah running dengan endpoint berikut tersedia:
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/pengguna/saya`
+- `PUT /api/pengguna/saya/kata-sandi`
+- Dan endpoint lainnya sesuai dokumentasi backend
+
+### 5. Build & Run
+
+#### Menggunakan Android Studio:
+1. Pilih device/emulator dari dropdown
+2. Klik tombol **Run** (▶️) atau tekan `Shift + F10`
+
+#### Menggunakan Command Line:
+```bash
+# Debug build
+./gradlew assembleDebug
+
+# Install ke device/emulator
+./gradlew installDebug
+
+# Build APK release
+./gradlew assembleRelease
+```
+
+APK yang dihasilkan akan berada di:
+- Debug: `app/build/outputs/apk/debug/app-debug.apk`
+- Release: `app/build/outputs/apk/release/app-release.apk`
+
+## 🔐 Akun Default
+
+### Admin
+- Email: `admin@silpa.com`
+- Password: `admin123`
+
+### Mahasiswa (untuk testing)
+- Email: `mahasiswa@silpa.com`
+- Password: `mahasiswa123`
+
+*Sesuaikan dengan akun yang ada di backend Anda*
+
+## 🎨 Design System
+
+### Color Palette
+- **Main Blue**: `#1E88E5` - Warna primer aplikasi
+- **Surface White**: `#FFFFFF` - Background card
+- **Background Light**: `#F5F7FA` - Background layar
+- **Text Black**: `#1A1A1A` - Text utama
+- **Text Gray**: `#666666` - Text sekunder
+- **Success Green**: `#4CAF50` - Status berhasil
+- **Alert Red**: `#F44336` - Status error/ditolak
+- **Warning Yellow**: `#FFC107` - Status pending/revisi
+
+### Typography
+- **Display**: 28sp, Bold
+- **Headline**: 24sp, Bold
+- **Title**: 20sp, SemiBold
+- **Body**: 16sp, Regular
+- **Caption**: 12sp, Regular
+
+## 🧪 Testing
+
+### Unit Tests
+```bash
+./gradlew test
+```
+
+### UI Tests
+```bash
+./gradlew connectedAndroidTest
+```
+
+## 📦 Dependencies Utama
+
+```kotlin
+// Jetpack Compose
+implementation("androidx.compose.ui:ui:1.5.4")
+implementation("androidx.compose.material3:material3:1.1.2")
+implementation("androidx.navigation:navigation-compose:2.7.5")
+
+// Networking
+implementation("com.squareup.retrofit2:retrofit:2.9.0")
+implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+// Coroutines
+implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+// Image Loading
+implementation("io.coil-kt:coil-compose:2.5.0")
+```
+
+## 🐛 Troubleshooting
+
+### Error: "Unable to connect to backend"
+- Pastikan backend server sudah running
+- Periksa URL di `RetrofitInstance.kt`
+- Untuk emulator, gunakan IP `10.0.2.2`
+- Untuk device fisik, pastikan laptop dan HP di network yang sama
+
+### Error: "401 Unauthorized"
+- Token mungkin sudah expired
+- Coba logout dan login kembali
+- Periksa implementasi JWT di backend
+
+### Error: "No Internet Connection"
+- Periksa koneksi internet device/emulator
+- Tambahkan permission di `AndroidManifest.xml`:
+  ```xml
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  ```
+
+### Build Error
+```bash
+# Clean dan rebuild
+./gradlew clean
+./gradlew build --refresh-dependencies
+```
+
+## 🤝 Kontribusi
+
+Kontribusi sangat diterima! Silakan ikuti langkah berikut:
+
+1. Fork repository ini
+2. Buat branch fitur (`git checkout -b feature/AmazingFeature`)
+3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) untuk detail.
+
+## 👥 Tim Pengembang
+
+- **Frontend Developer** - Android (Kotlin, Jetpack Compose)
+- **Backend Developer** - Spring Boot (Java)
+- **UI/UX Designer** - Design System
+
+## 📞 Kontak
+
+- Repository: https://git.stis.ac.id/222313363/silpa_ui
+- Email: support@silpa.com
+
+## 🙏 Acknowledgments
+
+- [Jetpack Compose](https://developer.android.com/jetpack/compose)
+- [Material Design 3](https://m3.material.io/)
+- [Retrofit](https://square.github.io/retrofit/)
+- [Spring Boot](https://spring.io/projects/spring-boot)
+
+---
+
+**Dibuat dengan ❤️ untuk kemudahan manajemen perizinan akademik**
 
 ## Suggestions for a good README
 

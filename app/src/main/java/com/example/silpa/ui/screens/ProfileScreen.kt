@@ -71,11 +71,11 @@ fun ProfileScreen(
     if (showPasswordDialog) {
         GantiPasswordDialog(
             onDismiss = { showPasswordDialog = false },
-            onSubmit = { lama, baru ->
+            onSubmit = { lama, baru, konfirmasi ->
                 scope.launch {
                     try {
                         val api = RetrofitInstance.getApi(context)
-                        val res = api.gantiKataSandi(GantiKataSandiDto(lama, baru))
+                        val res = api.gantiKataSandi(GantiKataSandiDto(lama, baru, konfirmasi))
                         
                         if (res.berhasil) {
                             Toast.makeText(context, res.pesan, Toast.LENGTH_SHORT).show()
@@ -87,13 +87,15 @@ fun ProfileScreen(
                         val errorMessage = when (e.code()) {
                             403 -> "Kata sandi lama tidak sesuai"
                             401 -> "Sesi Anda telah berakhir. Silakan login kembali"
+                            404 -> "Endpoint ganti password tidak ditemukan di server"
+                            500 -> "Server error. Endpoint mungkin belum tersedia"
                             else -> "Gagal ganti password (Error ${e.code()})"
                         }
-                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                     } catch (e: IOException) {
                         Toast.makeText(context, "Masalah koneksi internet", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Terjadi kesalahan: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Terjadi kesalahan: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                     }
                 }
             }
@@ -309,9 +311,11 @@ fun InfoRowMinimal(label: String, value: String) {
 }
 
 @Composable
-fun GantiPasswordDialog(onDismiss: () -> Unit, onSubmit: (String, String) -> Unit) {
+fun GantiPasswordDialog(onDismiss: () -> Unit, onSubmit: (String, String, String) -> Unit) {
     var lama by remember { mutableStateOf("") }
     var baru by remember { mutableStateOf("") }
+    var konfirmasi by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -321,34 +325,68 @@ fun GantiPasswordDialog(onDismiss: () -> Unit, onSubmit: (String, String) -> Uni
             Column {
                 OutlinedTextField(
                     value = lama,
-                    onValueChange = { lama = it },
-                    label = { Text("Sandi Lama") },
+                    onValueChange = { lama = it; errorMessage = "" },
+                    label = { Text("Kata Sandi Lama") },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MainBlue,
                         unfocusedBorderColor = BorderGray
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = baru,
-                    onValueChange = { baru = it },
-                    label = { Text("Sandi Baru") },
+                    onValueChange = { baru = it; errorMessage = "" },
+                    label = { Text("Kata Sandi Baru") },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MainBlue,
                         unfocusedBorderColor = BorderGray
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = konfirmasi,
+                    onValueChange = { konfirmasi = it; errorMessage = "" },
+                    label = { Text("Konfirmasi Kata Sandi Baru") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MainBlue,
+                        unfocusedBorderColor = BorderGray
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                if (errorMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = errorMessage,
+                        color = AlertRed,
+                        fontSize = 12.sp
+                    )
+                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onSubmit(lama, baru) },
+                onClick = {
+                    when {
+                        lama.isEmpty() -> errorMessage = "Kata sandi lama tidak boleh kosong"
+                        baru.isEmpty() -> errorMessage = "Kata sandi baru tidak boleh kosong"
+                        konfirmasi.isEmpty() -> errorMessage = "Konfirmasi kata sandi tidak boleh kosong"
+                        baru.length < 8 -> errorMessage = "Kata sandi baru minimal 8 karakter"
+                        baru != konfirmasi -> errorMessage = "Kata sandi baru dan konfirmasi tidak sama"
+                        else -> onSubmit(lama, baru, konfirmasi)
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = MainBlue),
                 shape = RoundedCornerShape(8.dp)
             ) { Text("Simpan") }
